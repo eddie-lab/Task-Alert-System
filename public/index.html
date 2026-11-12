@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Alert Management System</title>
+
+    <link rel="stylesheet"
+          href="/css/style.css">
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-wordmark">
+            <h2>NORREN<span>ALERTS</span></h2>
+           
+        </div>
+
+    <nav>
+
+        
+
+            <a class="nav-item active"
+                href="#">
+                <span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></span>
+                Dashboard
+            </a>
+
+            <div id="allAlertsNav", class="hidden">
+                <a class="nav-item"
+                    href="#">
+                    <span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="3" cy="5" r="1"/><circle cx="3" cy="10" r="1"/><circle cx="3" cy="15" r="1"/><line x1="7" y1="5" x2="18" y2="5"/><line x1="7" y1="10" x2="18" y2="10"/><line x1="7" y1="15" x2="18" y2="15"/></svg></span>
+                    All Alerts
+                </a>
+            </div>
+
+        
+
+            <div id="adminNav", class="hidden">
+
+            <div class="nav-section">
+                Administration
+            </div>
+
+            <a class="nav-item"
+                href="#">
+                <span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="2" width="12" height="16" rx="1"/><line x1="7" y1="6" x2="7" y2="6.01"/><line x1="13" y1="6" x2="13" y2="6.01"/><line x1="7" y1="10" x2="7" y2="10.01"/><line x1="13" y1="10" x2="13" y2="10.01"/><line x1="8" y1="18" x2="12" y2="18"/></svg></span>
+                Subsidiaries
+            </a>
+
+            <a class="nav-item"
+                href="/users.html">
+                <span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="3"/><path d="M2 17c0-3 2-5 5-5s5 2 5 5"/><circle cx="15" cy="7" r="2.2"/><path d="M13 17c0-2.2 1-4 3-4.3"/></svg></span>
+                Users
+            </a>
+
+            <a class="nav-item"
+                href="/settings.html">
+                <span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="3"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="19"/><line x1="1" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="19" y2="10"/><line x1="3.5" y1="3.5" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="16.5" y2="16.5"/><line x1="3.5" y1="16.5" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="16.5" y2="3.5"/></svg></span>
+                System Settings
+            </a>
+
+            </div>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div>
+                <img class="header-logo" src="/images/Nlogo.png" alt="Nörrenberger">
+            </div>
+
+            <div class="user-area">
+
+                <div class="user-avatar" id="userAvatar">
+                --
+                </div>
+
+                <div>
+                    <strong id="userName">Loading...</strong>
+                    <small id="userRole"></small>
+                </div>
+
+                <a class="logout-button" href="/api/auth/logout">
+                    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M7 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 14l4-4-4-4M17 10H7"/>
+                     </svg>
+                    Log out
+                </a>
+                
+
+            </div>
+
+        </header>
+
+
+        <section class="content">
+
+
+            <!-- DASHBOARD SUBSIDIARY FILTER -->
+
+            <div id="dashboardSubsidiaryWrap" class="filters" style="display:none;margin-bottom:16px">
+                <select id="dashboardSubsidiary" onchange="onSubsidiaryChange(this.value)">
+                    <option value="">All Subsidiaries</option>
+                </select>
+            </div>
+
+            <!-- STATISTICS -->
+
+            <div class="stats">
+
+                <div class="stat-card" data-filter="active">
+
+                    <span>Total Active</span>
+
+                    <strong id="totalAlerts">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card" data-filter="dueToday">
+
+                    <span>Due Today</span>
+
+                    <strong id="dueToday">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card" data-filter="overdue">
+
+                    <span>Overdue</span>
+
+                    <strong class="danger"
+                            id="overdue">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card" data-filter="escalated">
+
+                    <span>Escalated</span>
+
+                    <strong class="warning"
+                            id="escalated">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card" data-filter="completed">
+
+                    <span>Completed</span>
+
+                    <strong class="success"
+                            id="completed">
+                        -
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTION BAR -->
+
+            <div class="section-header">
+
+                <div>
+
+                    <h2>Alerts</h2>
+
+                    <p>
+                        Active alerts across your subsidiaries
+                    </p>
+
+                </div>
+
+                <button
+                    class="primary-button"
+                    onclick="openNewAlertForm()">
+
+                    + Create Alert
+
+                </button>
+
+            </div>
+
+
+            <!-- FILTERS -->
+
+            <div class="filters">
+
+                <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="Search alerts..."
+                    oninput="filterAlerts()">
+
+
+                <select id="subsidiaryFilter"
+                        onchange="onSubsidiaryChange(this.value)">
+
+                    <option value="">
+                        All Subsidiaries
+                    </option>
+
+                    <option>
+                        Norrenberger Asset Management
+                    </option>
+
+                    <option>
+                        Norrenberger Financial Group
+                    </option>
+                    <option>
+                        International Energy Insurance Plc
+                    </option>
+                    <option>
+                        Norrenberger Pension
+                    </option>
+                    <option>
+                        Clearpay 
+                    </option>
+                    <option>
+                        Transkredit Finance
+                    </option>
+                    
+
+                </select>
+
+
+                <select id="statusFilter"
+                        onchange="clearCardFilter();filterAlerts()">
+
+                    <option value="">
+                        All Statuses
+                    </option>
+
+                    <option>
+                        Pending
+                    </option>
+
+                    <option>
+                        Reminder Sent
+                    </option>
+
+                    <option>
+                        Overdue
+                    </option>
+
+                    <option>
+                        Post-Due Reminder Sent
+                    </option>
+
+                    <option>
+                        Escalated
+                    </option>
+
+                    <option>
+                        Completed
+                    </option>
+
+                    <option>
+                        Cancelled
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- ALERT TABLE -->
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Alert</th>
+
+                            <th>Subsidiary</th>
+
+                            <th>Collaborator(s)</th>
+
+                            <th>Due Date</th>
+
+                            <th>Frequency</th>
+
+                            <th>Status</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="alertsTable">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- CREATE ALERT MODAL -->
+
+<div id="alertModal"
+     class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2 id="alertModalTitle">Create Alert</h2>
+
+                <p>
+                    Configure a new recurring alert.
+                </p>
+
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closeCreateAlert()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <form id="alertForm">
+
+
+            <div class="form-group">
+
+                <label>
+                    Alert Name
+                </label>
+
+                <input
+                    id="alertName"
+                    required
+                    placeholder="e.g. Monthly Bank Reconciliation">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Description
+                </label>
+
+                <textarea
+                    id="alertDescription"
+                    placeholder="Describe the activity..."></textarea>
+
+            </div>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Subsidiary
+                    </label>
+
+                    <select id="alertSubsidiary"
+                            required>
+
+                        <option value="">
+                            Select subsidiary
+                        </option>
+
+                        <option>
+                            Norrenberger Asset Management
+                        </option>
+
+                        <option>
+                            Norrenberger Financial Group
+                        </option>
+                        <option>
+                            International Energy Insurance Plc
+                        </option>
+                        <option>
+                            Norrenberger Pension
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                    <div class="form-group">
+
+                        <label>
+                            Collaborators
+                        </label>
+
+                        <div id="alertOwnerOptions" class="collaborator-picker">
+                            <input
+                                id="collaboratorSearch"
+                                type="search"
+                                placeholder="Search by name or email"
+                                autocomplete="off"
+                                aria-label="Search collaborators">
+                            <div id="collaboratorSelected"
+                                class="collaborator-selected"
+                                aria-live="polite"></div>
+                            <div id="collaboratorResults"
+                                class="collaborator-results"
+                                role="listbox"
+                                aria-label="Collaborator search results"></div>
+                        </div>
+
+                    </div>
+
+            </div>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        First Due Date
+                    </label>
+
+                    <input
+                        id="dueDate"
+                        type="date"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Due Time
+                    </label>
+
+                    <input
+                        id="dueTime"
+                        type="time"
+                        required>
+
+                </div>
+
+            </div>
+
+
+            <h3>Recurrence</h3>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Repeat Every
+                    </label>
+
+                    <input
+                        id="frequencyValue"
+                        type="number"
+                        value="1"
+                        min="1">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Frequency
+                    </label>
+
+                    <select id="frequencyUnit">
+
+                        <option value="day">
+                            Day
+                        </option>
+
+                        <option value="week">
+                            Week
+                        </option>
+
+                        <option value="month"
+                                selected>
+                            Month
+                        </option>
+
+                        <option value="quarter">
+                            Quarter
+                        </option>
+
+                        <option value="year">
+                            Year
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <h3>Reminder</h3>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Remind Me
+                    </label>
+
+                    <input
+                        id="reminderValue"
+                        type="number"
+                        value="24"
+                        min="1">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Before Due Date
+                    </label>
+
+                    <select id="reminderUnit">
+
+                        <option value="minute">
+                            Minutes
+                        </option>
+
+                        <option value="hour"
+                                selected>
+                            Hours
+                        </option>
+
+                        <option value="day">
+                            Days
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Repeat Reminder Every
+                    </label>
+
+                    <input
+                        id="reminderRepeatValue"
+                        type="number"
+                        value="0"
+                        min="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Unit
+                    </label>
+
+                    <select id="reminderRepeatUnit">
+
+                        <option value="minute"
+                                selected>
+                            Minutes
+                        </option>
+
+                        <option value="hour">
+                            Hours
+                        </option>
+
+                        <option value="day">
+                            Days
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <p class="settings-hint">
+                Optional. Enter how often the reminder should be sent again until the due date. Leave at 0 to send the reminder only once, on the reminder date.
+            </p>
+
+
+            <h3>Recipients</h3>
+
+
+            <div class="form-group">
+
+                <label>
+                    Email Recipients
+                </label>
+
+                <input
+                    id="recipients"
+                    placeholder="email1@company.com, email2@company.com">
+
+            </div>
+
+
+            <h3>Escalation</h3>
+
+
+            <label class="checkbox">
+
+                <input
+                    type="checkbox"
+                    id="escalationEnabled">
+
+                Enable escalation
+
+            </label>
+
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+                        Escalate After
+                    </label>
+
+                    <input
+                        id="escalationValue"
+                        type="number"
+                        value="2"
+                        min="1">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Unit
+                    </label>
+
+                    <select id="escalationUnit">
+
+                        <option value="hour">
+                            Hours
+                        </option>
+
+                        <option value="day">
+                            Days
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Escalation Recipients
+                </label>
+
+                <input
+                    id="escalationRecipients"
+                    placeholder="manager@company.com, manager2@company.com">
+
+            </div>
+            <p class="settings-hint">
+                Separate multiple email addresses with commas. These people are notified only if the alert has not been completed by its due date.
+
+            </p>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    onclick="closeCreateAlert()">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                    id = "alertSubmitButton">
+
+                    Create Alert
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script src="/js/app.js"></script>
+
+</body>
+
+</html>

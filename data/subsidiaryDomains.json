@@ -1,0 +1,16 @@
+{
+    "ieiplcng.com": "International Energy Insurance Plc",
+    "norrenberger.com": {
+        "ambiguous": true,
+        "question": "What is your subsidiary?",
+        "options": [
+            "Norrenberger Financial Group",
+            "Norrenberger Asset Management",
+            "Norrenberger Securities"
+        ]
+    },
+    "norrenpensions.com": "Norrenberger Pension",
+    "transkreditfinance.com": "Transkredit Finance",
+    "clearpaymfb.com": "Clearpay Microfinance Bank",
+    "graysonstrust.com": "Grayson Trust"
+}

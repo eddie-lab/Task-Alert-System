@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f4f6fa">
+    <title>Sign in to NorrenAlerts</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body class="signin-page">
+    <main class="signin-shell">
+        <section class="signin-card" aria-labelledby="signinTitle">
+            <div class="signin-brand">
+                <span class="signin-app-name">Norren<span>Alerts</span></span>
+            </div>
+
+            <div class="signin-intro">
+                <h1 id="signinTitle">Welcome back</h1>
+                <p>Sign in with your Microsoft work account to continue.</p>
+            </div>
+
+            <div id="authError" class="signin-error hidden" role="alert"></div>
+
+            <div id="subsidiaryStep" class="signin-subsidiary-step hidden">
+                <label id="subsidiaryQuestionLabel" for="subsidiaryChoice">
+                    Which subsidiary are you part of?
+                </label>
+                <select id="subsidiaryChoice"></select>
+                <button id="completeSignupButton" class="signin-button signin-button-primary">
+                    Continue
+                </button>
+            </div>
+
+            <a id="microsoftSignInButton" href="/api/auth/login" class="signin-button">
+                <span class="microsoft-mark" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                </span>
+                <span>Sign in with Microsoft</span>
+            </a>
+
+            <p class="signin-security-note">
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M10 2.5 3.5 5v4.6c0 4.1 2.7 6.7 6.5 7.9 3.8-1.2 6.5-3.8 6.5-7.9V5L10 2.5Zm0 2.1 4.5 1.7v3.3c0 3-1.7 5-4.5 6.1-2.8-1.1-4.5-3.1-4.5-6.1V6.3L10 4.6Zm-.8 3v4.8h1.6V7.6H9.2Zm0-2.1v1.4h1.6V5.5H9.2Z"/>
+                </svg>
+                Secure access for authorized organization users
+            </p>
+        </section>
+    </main>
+
+    <script src="/js/signup.js"></script>
+</body>
+
+</html>
