@@ -10,8 +10,26 @@ const {
     calculateEscalationDate
 } = require("../services/alertSchedulingService");
 const { validateAlertInput } = require("../services/alertValidation");
+const multer = require("multer");
+const {
+    buildTemplateBuffer,
+    parseWorkbook
+} = require("../services/alertImportService");
 
 const router = express.Router();
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 3 * 1024 * 1024 }, // 3 MB
+    fileFilter: (_req, file, cb) => {
+        const name = String(file.originalname || "").toLowerCase();
+        // .xlsm (macro) files are rejected — template is plain .xlsx only
+        if (name.endsWith(".xlsx")) {
+            cb(null, true);
+            return;
+        }
+        cb(new Error("Upload an Excel .xlsx file (download the template first)."));
+    }
+});
 
 //DATA FUNCTIONS
 
@@ -55,6 +73,46 @@ function generateAlertId(alerts) {
     return `ALT-${String(maxNumber + 1).padStart(6, "0")}`;
 }
 
+function attachScheduleFields(alert) {
+    alert.reminderDate = calculateReminderDate(
+        alert.dueDate,
+        alert.reminderValue,
+        alert.reminderUnit
+    );
+    if (alert.escalationEnabled) {
+        alert.escalationDate = calculateEscalationDate(
+            alert.dueDate,
+            alert.escalationValue,
+            alert.escalationUnit
+        );
+    } else {
+        alert.escalationDate = null;
+    }
+    alert.reminderSent = false;
+    alert.escalationSent = false;
+    alert.dueNoticeSent = false;
+    alert.completedDate = null;
+    alert.completedBy = null;
+    alert.previousOccurrenceId = null;
+    alert.nextOccurrenceId = null;
+    alert.postDueReminderDate = null;
+    alert.postDueReminderSent = false;
+    return alert;
+}
+
+function createAlertRecord(alertInput, currentUser, alerts) {
+    const newAlert = {
+        id: generateAlertId(alerts),
+        ...alertInput,
+        createdBy: currentUser.name,
+        createdByEmail: currentUser.email,
+        createdByUserId: currentUser.id,
+        status: "Pending",
+        active: true
+    };
+    return attachScheduleFields(newAlert);
+}
+
 
 /* =========================================================
    GET ALL ALERTS
@@ -83,6 +141,112 @@ router.get("/", async (req, res) => {
             message: "Unable to retrieve alerts"
         });
     }
+});
+
+
+/* =========================================================
+   DOWNLOAD EXCEL TEMPLATE (must be before /:id)
+========================================================= */
+
+router.get("/template", async (req, res) => {
+    try {
+        const buffer = await buildTemplateBuffer();
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="alert-import-template.xlsx"'
+        );
+        res.send(Buffer.from(buffer));
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Unable to build the template." });
+    }
+});
+
+
+/* =========================================================
+   BATCH IMPORT FROM EXCEL
+========================================================= */
+
+router.post("/import", (req, res) => {
+    upload.single("file")(req, res, async (uploadError) => {
+        if (uploadError) {
+            return res.status(400).json({
+                message: uploadError.message || "Unable to read the uploaded file."
+            });
+        }
+
+        try {
+            if (!req.file || !req.file.buffer) {
+                return res.status(400).json({
+                    message: "Choose an Excel .xlsx file to upload."
+                });
+            }
+
+            const currentUser = getCurrentUser(req);
+            const forcedSubsidiary = isAdmin(currentUser)
+                ? null
+                : currentUser.subsidiary;
+
+            const parsed = await parseWorkbook(req.file.buffer, {
+                forcedSubsidiary,
+                creatorEmail: currentUser.email
+            });
+            if (parsed.error) {
+                return res.status(400).json({ message: parsed.error });
+            }
+
+            const alerts = await getAlerts();
+            if (!Array.isArray(alerts)) {
+                return res.status(500).json({ message: "Unable to load existing alerts." });
+            }
+            const created = [];
+            const failed = [];
+
+            for (const item of parsed.results) {
+                if (!item.ok) {
+                    failed.push({ row: item.row, error: item.error });
+                    continue;
+                }
+                // Non-admins always create under their subsidiary
+                const input = forcedSubsidiary
+                    ? { ...item.value, subsidiary: forcedSubsidiary }
+                    : item.value;
+                try {
+                    const record = createAlertRecord(input, currentUser, alerts);
+                    alerts.push(record);
+                    created.push({
+                        row: item.row,
+                        id: record.id,
+                        name: record.name
+                    });
+                } catch (rowError) {
+                    failed.push({
+                        row: item.row,
+                        error: rowError.message || "Unable to create this alert."
+                    });
+                }
+            }
+
+            if (created.length) {
+                await saveAlerts(alerts);
+            }
+
+            return res.status(created.length ? 201 : 400).json({
+                message: created.length
+                    ? `Created ${created.length} alert${created.length === 1 ? "" : "s"}${failed.length ? `; ${failed.length} row${failed.length === 1 ? "" : "s"} failed` : ""}.`
+                    : "No alerts were created. Fix the row errors and try again.",
+                created,
+                failed
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Unable to import alerts." });
+        }
+    });
 });
 
 
@@ -158,58 +322,7 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ message: repeatError });
         }
 
-        const newAlert = {
-            id: generateAlertId(alerts),
-            ...alertInput,
-            createdBy: currentUser.name,
-            createdByEmail: currentUser.email,
-            createdByUserId: currentUser.id,
-            status: "Pending",
-            active: true,
-            postDueReminderDate: null,
-            postDueReminderSent: false,
-            dueNoticeSent: false
-        };
-
-        newAlert.reminderDate =
-            calculateReminderDate(
-                newAlert.dueDate,
-                newAlert.reminderValue,
-                newAlert.reminderUnit
-            );
-
-
-        if (
-            newAlert.escalationEnabled
-        ) {
-
-            newAlert.escalationDate =
-                calculateEscalationDate(
-                    newAlert.dueDate,
-                    newAlert.escalationValue,
-                    newAlert.escalationUnit
-                );
-
-        } else {
-
-            newAlert.escalationDate = null;
-        }
-
-
-        newAlert.reminderSent = false;
-
-        newAlert.escalationSent = false;
-
-        newAlert.dueNoticeSent = false;
-
-        newAlert.completedDate = null;
-
-        newAlert.completedBy = null;
-
-        newAlert.previousOccurrenceId = null;
-
-        newAlert.nextOccurrenceId = null;
-
+        const newAlert = createAlertRecord(alertInput, currentUser, alerts);
         alerts.push(newAlert);
 
         await saveAlerts(alerts);

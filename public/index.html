@@ -370,6 +370,24 @@
 
         <form id="alertForm">
 
+            <div id="batchImportPanel" class="batch-import">
+                <div class="batch-import__text">
+                    <strong>Batch import</strong>
+                    <p>Download the Excel template, fill one alert per row, then upload the file.</p>
+                </div>
+                <div class="batch-import__actions">
+                    <button type="button" class="action-button edit-button" id="downloadAlertTemplateBtn">
+                        Download template
+                    </button>
+                    <label class="action-button complete-button batch-import__file-label">
+                        Upload filled template
+                        <input type="file" id="alertImportFile" accept=".xlsx" hidden>
+                    </label>
+                </div>
+                <div id="batchImportResult" class="batch-import__result" hidden></div>
+            </div>
+
+            <p id="singleAlertDivider" class="batch-import__divider">Or create one alert</p>
 
             <div class="form-group">
 
@@ -759,6 +777,8 @@
 
 
 <script src="/js/app.js"></script>
+
+    <script src="/js/mobile-nav.js"></script>
 
 </body>
 

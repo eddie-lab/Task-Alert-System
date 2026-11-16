@@ -316,6 +316,8 @@ function openNewAlertForm() {
     applyCurrentUserSubsidiary();
 
     syncRecipientsField();
+    setBatchImportVisible(true);
+    clearBatchImportResult();
 
     openCreateAlert();
 }
@@ -381,7 +383,7 @@ function renderAlerts(alerts) {
 
     //empty table message
     if (!alerts.length) {
-        table.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:24px">No alerts match this filter.</td></tr>`;
+        table.innerHTML = `<tr><td colspan="7" class="table-empty">No alerts match this filter.</td></tr>`;
         return;
     }
 
@@ -395,98 +397,85 @@ function renderAlerts(alerts) {
                 .toLowerCase()
                 .replace(/\s+/g, "-");
 
-        row.innerHTML = `
+        const completedMeta = alert.status === "Completed"
+            ? completionMetaHtml(alert)
+            : "";
 
-            <td>
-                <strong>${escapeHtml(alert.name)}</strong>
-                <br>
-                <small>
-                    ${escapeHtml(alert.description)}
-                </small>
-            </td>
-
-            <td>
-                ${escapeHtml(alert.subsidiary)}
-            </td>
-
-            <td>
-                ${escapeHtml(alert.owner)}
-            </td>
-
-            <td>
-                ${formatDate(alert.dueDate)}
-            </td>
-
-            <td>
-                Every ${escapeHtml(alert.frequencyValue)}
-                ${escapeHtml(alert.frequencyUnit)}
-            </td>
-
-            <td>
-
-                <span class="status status-${statusClass}">
-                    ${escapeHtml(alert.status)}
-                </span>
-
-            </td>
-
-            <td>
-                <div class="alert-actions">
-
-                    ${
-                        alert.status === "Cancelled"
-
-                        ?
-
-                        `
+        const actionsHtml =
+            alert.status === "Cancelled"
+                ? `
                         <button
                             class="action-button edit-button"
                             onclick="editAlert('${alert.id}')">
                             Edit
                         </button>
-
                         <button
                             class="action-button reactivate-button"
                             onclick="reactivateAlert('${alert.id}')">
                             Reactivate
                         </button>
-                        `
-
-                        :
-
-                        alert.status === "Completed"
-
-                        ?
-
-                        `
-                        <span class="completed-label">
-                            ✓ Completed
-                        </span>
-                        `
-
-                        :
-
-                        `
+                    `
+                : alert.status === "Completed"
+                    ? `
+                        <span class="completed-label">✓ Done</span>
+                    `
+                    : `
                         <button
                             class="action-button edit-button"
                             onclick="editAlert('${alert.id}')">
                             Edit
                         </button>
-
                         <button
                             class="action-button complete-button"
                             onclick="completeAlert('${alert.id}')">
                             Done
                         </button>
-
                         <button
                             class="action-button cancel-button"
                             onclick="cancelAlert('${alert.id}')">
                             Cancel
                         </button>
-                        `
-                    }
+                    `;
 
+        row.innerHTML = `
+
+            <td data-label="Alert">
+                <strong>${escapeHtml(alert.name)}</strong>
+                <br>
+                <small>
+                    ${escapeHtml(alert.description || "")}
+                </small>
+            </td>
+
+            <td data-label="Subsidiary">
+                ${escapeHtml(alert.subsidiary || "—")}
+            </td>
+
+            <td data-label="Collaborator(s)">
+                ${escapeHtml(alert.owner || "—")}
+            </td>
+
+            <td data-label="Due Date">
+                ${alert.dueDate ? formatDate(alert.dueDate) : "—"}
+            </td>
+
+            <td data-label="Frequency">
+                Every ${escapeHtml(String(alert.frequencyValue ?? ""))}
+                ${escapeHtml(alert.frequencyUnit || "")}
+            </td>
+
+            <td data-label="Status">
+                <div class="status-cell">
+                    <span class="status status-${statusClass}">
+                        ${escapeHtml(alert.status)}
+                    </span>
+                    ${alert.status === "Completed" ? completedMeta : ""}
+                </div>
+            </td>
+
+            <td data-label="Action">
+                <div class="alert-actions">
+                    ${actionsHtml}
                 </div>
             </td>
 
@@ -495,6 +484,18 @@ function renderAlerts(alerts) {
         table.appendChild(row);
 
     });
+}
+
+/** Who marked the alert done, and when — for the status/action cells. */
+function completionMetaHtml(alert) {
+    const by = alert.completedBy ? escapeHtml(alert.completedBy) : "Unknown";
+    const when = alert.completedDate ? formatDate(alert.completedDate) : "—";
+    return `
+        <div class="completion-meta" title="Completed by ${by} on ${when}">
+            <span class="completion-meta__by">by ${by}</span>
+            <span class="completion-meta__when">${when}</span>
+        </div>
+    `;
 }
 // filter alerts on stat card click
 let cardFilter = "";
@@ -600,6 +601,9 @@ function closeCreateAlert() {
         .getElementById("alertModal")
         .classList
         .add("hidden");
+    clearBatchImportResult();
+    const fileInput = document.getElementById("alertImportFile");
+    if (fileInput) fileInput.value = "";
 }
 
 
@@ -876,6 +880,9 @@ async function editAlert(id) {
         form.dataset.editingId =
             alertData.id;
 
+        setBatchImportVisible(false);
+        clearBatchImportResult();
+
         document.getElementById("alertName").value =
             alertData.name || "";
 
@@ -1058,6 +1065,136 @@ async function reactivateAlert(id) {
     );
 }
 
+
+// ==============================
+// BATCH IMPORT (Excel template)
+// ==============================
+
+function setBatchImportVisible(visible) {
+    const panel = document.getElementById("batchImportPanel");
+    const divider = document.getElementById("singleAlertDivider");
+    if (panel) panel.hidden = !visible;
+    if (divider) divider.hidden = !visible;
+}
+
+function clearBatchImportResult() {
+    const box = document.getElementById("batchImportResult");
+    if (!box) return;
+    box.hidden = true;
+    box.className = "batch-import__result";
+    box.innerHTML = "";
+}
+
+function showBatchImportResult(payload) {
+    const box = document.getElementById("batchImportResult");
+    if (!box) return;
+    const created = payload.created || [];
+    const failed = payload.failed || [];
+    box.hidden = false;
+    let tone = "is-bad";
+    if (created.length && failed.length) tone = "is-mixed";
+    else if (created.length) tone = "is-ok";
+    box.className = "batch-import__result " + tone;
+
+    let html = `<p><strong>${escapeHtml(payload.message || "")}</strong></p>`;
+    if (created.length) {
+        html += `<p class="batch-import__ok-count">${created.length} created</p>`;
+    }
+    if (failed.length) {
+        html += `<ul class="batch-import__errors">`;
+        failed.slice(0, 12).forEach((item) => {
+            html += `<li>Row ${item.row}: ${escapeHtml(item.error || "Invalid")}</li>`;
+        });
+        if (failed.length > 12) {
+            html += `<li>…and ${failed.length - 12} more</li>`;
+        }
+        html += `</ul>`;
+    }
+    box.innerHTML = html;
+}
+
+async function downloadAlertTemplate() {
+    try {
+        const response = await fetch("/api/alerts/template");
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            alert(err.message || "Unable to download the template.");
+            return;
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "alert-import-template.xlsx";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error(error);
+        alert("Unable to download the template.");
+    }
+}
+
+async function importAlertTemplate(file) {
+    if (!file) return;
+
+    const name = String(file.name || "").toLowerCase();
+    if (!name.endsWith(".xlsx")) {
+        showBatchImportResult({
+            message: "Upload an Excel .xlsx file (download the template first).",
+            created: [],
+            failed: []
+        });
+        return;
+    }
+
+    const body = new FormData();
+    body.append("file", file);
+
+    const resultBox = document.getElementById("batchImportResult");
+    if (resultBox) {
+        resultBox.hidden = false;
+        resultBox.className = "batch-import__result";
+        resultBox.innerHTML = "<p><strong>Importing…</strong></p>";
+    }
+
+    try {
+        const response = await fetch("/api/alerts/import", {
+            method: "POST",
+            body
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok && !(payload.created && payload.created.length)) {
+            showBatchImportResult({
+                message: payload.message || "Import failed.",
+                created: payload.created || [],
+                failed: payload.failed || []
+            });
+            return;
+        }
+        showBatchImportResult(payload);
+        if (payload.created && payload.created.length) {
+            await loadDashboard();
+            await loadAlerts();
+        }
+    } catch (error) {
+        console.error(error);
+        showBatchImportResult({
+            message: "Unable to import alerts.",
+            created: [],
+            failed: []
+        });
+    }
+}
+
+document.getElementById("downloadAlertTemplateBtn")?.addEventListener("click", downloadAlertTemplate);
+document.getElementById("alertImportFile")?.addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    importAlertTemplate(file).finally(() => {
+        event.target.value = "";
+    });
+});
 
 // ==============================
 // DATE FORMAT

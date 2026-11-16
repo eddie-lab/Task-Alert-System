@@ -102,12 +102,12 @@ function renderUsers(users) {
 
         return `
             <tr>
-                <td><strong>${escapeHtml(user.name)}</strong></td>
-                <td>${escapeHtml(user.email)}</td>
-                <td><span class="status ${isAdminUser ? "role-admin" : "role-user"}">${escapeHtml(user.role)}</span></td>
-                <td>${user.subsidiary ? escapeHtml(user.subsidiary) : "All subsidiaries"}</td>
-                <td><span class="status ${user.active ? "status-completed" : "status-cancelled"}">${user.active ? "Active" : "Inactive"}</span></td>
-                <td>${actions}</td>
+                <td data-label="Name"><strong>${escapeHtml(user.name)}</strong></td>
+                <td data-label="Email">${escapeHtml(user.email)}</td>
+                <td data-label="Role"><span class="status ${isAdminUser ? "role-admin" : "role-user"}">${escapeHtml(user.role)}</span></td>
+                <td data-label="Subsidiary">${user.subsidiary ? escapeHtml(user.subsidiary) : "All subsidiaries"}</td>
+                <td data-label="Status"><span class="status ${user.active ? "status-completed" : "status-cancelled"}">${user.active ? "Active" : "Inactive"}</span></td>
+                <td data-label="Action">${actions}</td>
             </tr>
         `;
 
