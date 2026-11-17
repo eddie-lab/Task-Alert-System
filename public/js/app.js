@@ -571,15 +571,17 @@ function filterAlerts() {
             .getElementById("statusFilter")
             .value;
 
-    const fromDate = document.getElementById("dueDateFrom").value;
-    const toDate = document.getElementById("dueDateTo").value;
+    const fromDate = document.getElementById("dateFrom").value;
+    const toDate = document.getElementById("dateTo").value;
     const dateRangeError = document.getElementById("dateRangeError");
+    const dateRangeHelp = document.getElementById("dateRangeHelp");
     const downloadButton = document.getElementById("downloadAlertsBtn");
 
     if (fromDate && toDate && fromDate > toDate) {
         dateRangeError.textContent = "The start date must be on or before the end date.";
         dateRangeError.classList.remove("hidden");
         downloadButton.disabled = true;
+        dateRangeHelp.textContent = "";
         visibleAlerts = [];
         renderAlerts(visibleAlerts);
         return;
@@ -587,7 +589,14 @@ function filterAlerts() {
 
     dateRangeError.textContent = "";
     dateRangeError.classList.add("hidden");
-    downloadButton.disabled = false;
+    downloadButton.disabled = !fromDate || !toDate;
+    dateRangeHelp.textContent = !fromDate && !toDate
+        ? "Choose a start and end date to enable CSV download."
+        : !fromDate
+            ? "Choose a start date to enable CSV download."
+            : !toDate
+                ? "Choose an end date to enable CSV download."
+                : "";
 
     visibleAlerts =
         allAlerts.filter(alert => {
@@ -634,6 +643,10 @@ function filterAlerts() {
 }
 
 function downloadFilteredAlerts() {
+    if (document.getElementById("downloadAlertsBtn").disabled) {
+        return;
+    }
+
     const csvCell = value => {
         let text = String(value ?? "");
         if (/^[=+\-@\t\r]/.test(text)) {

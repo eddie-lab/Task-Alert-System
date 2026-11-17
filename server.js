@@ -137,7 +137,7 @@ async function startServer() {
     }
 
     const server = app.listen(PORT, () => {
-        console.log(`Alert System running on https://norrenalerts.norrenberger.com`);
+        console.log(`Alert System running on http://localhost:${PORT}`);
         startScheduler();
     });
 

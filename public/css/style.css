@@ -334,39 +334,65 @@ body {
 /* FILTERS */
 
 .filters {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns:
+        minmax(180px, 1.5fr)
+        minmax(150px, 1.2fr)
+        minmax(135px, 1fr)
+        repeat(2, minmax(145px, 1fr))
+        auto;
     gap: 12px;
+    align-items: end;
     margin-bottom: 15px;
 }
 
 .filters input,
 .filters select {
+    width: 100%;
+    min-width: 0;
     padding: 10px 12px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
     background: white;
 }
 
-.filters input {
-    width: 300px;
+.date-range-filters {
+    display: contents;
 }
 
 .date-filter {
     display: flex;
     flex-direction: column;
+    min-width: 0;
     gap: 4px;
     color: #6b7280;
     font-size: 12px;
 }
 
 .filters .date-filter input {
-    width: 150px;
+    width: 100%;
 }
 
 .download-alerts-button {
-    align-self: flex-end;
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     white-space: nowrap;
+    min-height: 42px;
+    padding: 10px 14px;
+}
+
+.download-alerts-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+.download-alerts-button:focus-visible,
+.date-filter input:focus-visible {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
 }
 
 .download-alerts-button:disabled {
@@ -374,10 +400,18 @@ body {
     opacity: 0.55;
 }
 
+.date-range-help,
 .date-range-error {
     margin: -4px 0 12px;
-    color: #b42318;
     font-size: 13px;
+}
+
+.date-range-help {
+    color: #6b7280;
+}
+
+.date-range-error {
+    color: #b42318;
 }
 
 /* TABLE */
@@ -639,6 +673,28 @@ h3 {
 
     .sidebar {
         width: 200px;
+    }
+
+    .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filters #searchInput,
+    .date-range-filters,
+    .download-alerts-button {
+        grid-column: 1 / -1;
+    }
+
+    .date-range-filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        max-width: none;
+    }
+
+    .date-range-help,
+    .date-range-error {
+        grid-column: 1 / -1;
     }
 
     .stats {
@@ -1503,18 +1559,22 @@ tbody tr:hover {
     }
 
     .filters {
-        flex-wrap: wrap;
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .filters input {
-        width: 100%;
-        flex: 1 1 100%;
+    .date-range-filters {
+        grid-column: auto;
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .filters select {
-        flex: 1 1 calc(50% - 6px);
-        min-width: 0;
-        max-width: 100%;
+    .filters #searchInput,
+    .download-alerts-button {
+        grid-column: auto;
+    }
+
+    .download-alerts-button {
+        justify-self: stretch;
+        justify-content: center;
     }
 
     /* five stat cards: two across instead of five tall blocks */
