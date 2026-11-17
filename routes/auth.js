@@ -52,7 +52,18 @@ router.get("/login", async (req, res) => {
             redirectUri: REDIRECT_URI
         });
 
-        res.redirect(authUrl);
+        // Send the browser to Microsoft with a small page instead of a 302.
+        // Some hosts and reverse proxies rewrite the Location header of a
+        // redirect so it points back at this site ("Cannot GET /<tenant>/oauth2/...").
+        // A page that navigates by itself is not touched by them.
+        const safe = String(authUrl).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+        res.set("Cache-Control", "no-store");
+        res.status(200).type("html").send(
+            '<!doctype html><html><head><meta charset="utf-8"><title>Redirecting…</title>' +
+            '<meta http-equiv="refresh" content="0;url=' + safe + '"></head>' +
+            '<body><p>Taking you to Microsoft… <a href="' + safe + '">Continue</a></p>' +
+            '<script>location.replace(' + JSON.stringify(String(authUrl)).replace(/</g, "\\u003c") + ');</script></body></html>'
+        );
 
     } catch (error) {
 
@@ -113,20 +124,14 @@ router.get("/callback", async (req, res) => {
                 req.session.pendingSignup = { name, email };
 
                 return res.redirect(
-                    "/signup.html?needsSignup=1&needsSubsidiary=1&question=" +
+                    "/signup.html?needsSubsidiary=1&question=" +
                     encodeURIComponent(resolution.question) +
                     "&options=" +
                     encodeURIComponent(JSON.stringify(resolution.options))
                 );
             }
 
-            req.session.pendingSignup = {
-                name,
-                email,
-                subsidiary: resolution.subsidiary
-            };
-
-            return res.redirect("/signup.html?needsSignup=1");
+            user = await createUser({ name, email, subsidiary: resolution.subsidiary });
         }
 
         req.session.userId = user.id;
@@ -156,10 +161,7 @@ router.post("/complete-signup", async (req, res) => {
             return res.status(400).json({ message: "No signup in progress." });
         }
 
-        const resolution = await resolveSubsidiary(
-            pending.email,
-            req.body.subsidiary || pending.subsidiary
-        );
+        const resolution = await resolveSubsidiary(pending.email, req.body.subsidiary);
 
         if (!resolution.allowed || resolution.ambiguous) {
             return res.status(400).json({ message: "Invalid subsidiary selection." });
@@ -170,12 +172,6 @@ router.post("/complete-signup", async (req, res) => {
             email: pending.email,
             subsidiary: resolution.subsidiary
         });
-
-        if (user.active === false) {
-            return res.status(403).json({
-                message: "Your account has been deactivated. Please contact an administrator."
-            });
-        }
 
         delete req.session.pendingSignup;
 
