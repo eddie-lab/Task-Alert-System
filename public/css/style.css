@@ -1574,9 +1574,20 @@ tbody tr:hover {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    /* From + To on one row, compact so they fit */
     .date-range-filters {
-        grid-column: auto;
-        grid-template-columns: minmax(0, 1fr);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        grid-column: 1 / -1;
+    }
+
+    .filters .date-input,
+    .filters input[type="date"] {
+        min-height: 40px;
+        height: 40px;
+        padding: 8px 8px;
+        font-size: 13px;
     }
 
     .filters #searchInput,
@@ -1848,14 +1859,21 @@ tbody tr:hover {
         padding: 8px 14px;
     }
 
-    /* Slightly larger touch targets on filter controls */
+    /* Slightly larger touch targets on main filter controls (not the compact date pair) */
     .filters select,
     .filters input[type="text"],
-    .filters input[type="date"],
     .filters .secondary-button,
     .filters .download-alerts-button {
         min-height: 44px;
         font-size: 15px;
+    }
+
+    .filters .date-input,
+    .filters input[type="date"] {
+        min-height: 40px;
+        height: 40px;
+        padding: 8px 8px;
+        font-size: 13px;
     }
 
     /* Stat cards: clearer selected state on touch devices */
