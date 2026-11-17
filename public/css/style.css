@@ -363,7 +363,30 @@ body {
     box-sizing: border-box;
 }
 
-/* Date inputs: avoid fixed height — iOS Safari needs room to render the value */
+/* Date field with placeholder text (works on iOS where native placeholder is ignored) */
+.date-field {
+    position: relative;
+    display: block;
+    min-width: 0;
+    width: 100%;
+}
+
+.date-placeholder {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.date-field.has-value .date-placeholder {
+    display: none;
+}
+
 .filters .date-input,
 .filters input[type="date"] {
     width: 100%;
@@ -1596,6 +1619,15 @@ tbody tr:hover {
         grid-column: 1 / -1;
         width: 100%;
         max-width: 100%;
+    }
+
+    .date-field {
+        min-width: 0;
+    }
+
+    .date-placeholder {
+        left: 10px;
+        font-size: 16px;
     }
 
     .filters .date-input,
