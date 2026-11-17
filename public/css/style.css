@@ -98,7 +98,8 @@ body {
     display: block;
     height: 32px;
     width: auto;
-    margin-bottom: 6px;
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 .nav-item {
     display: flex;
@@ -342,35 +343,30 @@ body {
         repeat(2, minmax(145px, 1fr))
         auto;
     gap: 12px;
-    align-items: end;
+    align-items: center;
     margin-bottom: 15px;
 }
 
+/* All filter controls share the same size */
 .filters input,
-.filters select {
+.filters select,
+.filters .date-input,
+.filters input[type="date"] {
     width: 100%;
     min-width: 0;
+    min-height: 42px;
+    height: 42px;
     padding: 10px 12px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
     background: white;
+    font-size: 14px;
+    color: #111827;
+    box-sizing: border-box;
 }
 
 .date-range-filters {
     display: contents;
-}
-
-.date-filter {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    gap: 4px;
-    color: #6b7280;
-    font-size: 12px;
-}
-
-.filters .date-filter input {
-    width: 100%;
 }
 
 .download-alerts-button {
@@ -380,6 +376,7 @@ body {
     gap: 8px;
     white-space: nowrap;
     min-height: 42px;
+    height: 42px;
     padding: 10px 14px;
 }
 
@@ -390,7 +387,8 @@ body {
 }
 
 .download-alerts-button:focus-visible,
-.date-filter input:focus-visible {
+.filters input:focus-visible,
+.filters select:focus-visible {
     outline: 2px solid var(--navy);
     outline-offset: 2px;
 }
@@ -1164,19 +1162,27 @@ tbody tr:hover {
 .sidebar-profile .sidebar-logout {
     display: flex;
     width: 100%;
-    height: 36px;
+    min-height: 48px;
+    height: auto;
     justify-content: center;
-    gap: 8px;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
     margin-left: 0;
-    padding: 0 10px;
-    border-color: rgba(255, 255, 255, 0.2);
-    background: transparent;
-    color: #d1d5db;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.07);
+    color: #f3f4f6;
+    font-size: 15px;
+    font-weight: 600;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.sidebar-profile .sidebar-logout:hover {
+.sidebar-profile .sidebar-logout:hover,
+.sidebar-profile .sidebar-logout:active {
     border-color: #fecaca;
-    background: rgba(239, 65, 54, 0.16);
+    background: rgba(239, 65, 54, 0.22);
     color: #fff;
 }
 
@@ -1390,6 +1396,9 @@ tbody tr:hover {
 }
 
 .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     min-width: 0;
 }
 
@@ -1517,8 +1526,11 @@ tbody tr:hover {
         padding: 14px 12px;
     }
 
+    /* Keep logo visible in top-left on small phones */
     .header-logo {
-        display: none;
+        display: block;
+        height: 26px;
+        margin-bottom: 0;
     }
 
     /* keep the name block off a narrow screen; the avatar and Log out stay */

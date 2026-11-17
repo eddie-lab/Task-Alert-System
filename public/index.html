@@ -304,15 +304,8 @@
                 </select>
 
                 <div class="date-range-filters">
-                    <label class="date-filter">
-                        From date
-                        <input id="dateFrom" type="date" onchange="filterAlerts()">
-                    </label>
-
-                    <label class="date-filter">
-                        To date
-                        <input id="dateTo" type="date" onchange="filterAlerts()">
-                    </label>
+                    <input id="dateFrom" type="date" class="date-input" onchange="filterAlerts()" aria-label="From date" title="From date">
+                    <input id="dateTo" type="date" class="date-input" onchange="filterAlerts()" aria-label="To date" title="To date">
                 </div>
 
                 <button id="downloadAlertsBtn" class="secondary-button download-alerts-button" type="button" disabled aria-describedby="dateRangeHelp">
