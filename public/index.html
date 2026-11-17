@@ -192,7 +192,7 @@
 
             <!-- ACTION BAR -->
 
-            <div class="section-header">
+            <div class="section-header" id="alertsSection">
 
                 <div>
 
@@ -212,6 +212,15 @@
 
                 </button>
 
+            </div>
+
+            <!-- Active filter feedback (shown when a stat card filter is applied) -->
+            <div id="activeFilterBar" class="active-filter-bar hidden" role="status" aria-live="polite">
+                <span class="active-filter-label">Filtered by:</span>
+                <span id="activeFilterText" class="active-filter-chip"></span>
+                <button type="button" class="active-filter-clear" onclick="clearCardFilter(); filterAlerts();" aria-label="Clear filter">
+                    Clear
+                </button>
             </div>
 
 

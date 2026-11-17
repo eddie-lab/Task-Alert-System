@@ -61,6 +61,14 @@ function syncRecipientsField() {
     document.getElementById("recipients").value = merged.join(", ");
 }
 
+const CARD_FILTER_LABELS = {
+    active: "Total Active",
+    dueToday: "Due Today",
+    overdue: "Overdue",
+    escalated: "Escalated",
+    completed: "Completed"
+};
+
 document.querySelectorAll(".stat-card[data-filter]").forEach(card => {
 
     card.tabIndex = 0;
@@ -79,6 +87,16 @@ document.querySelectorAll(".stat-card[data-filter]").forEach(card => {
         }
 
         filterAlerts();
+        updateActiveFilterBar();
+
+        // On mobile, scroll the alerts table into view after filtering
+        if (window.matchMedia("(max-width: 700px)").matches) {
+            const target = document.getElementById("alertsSection")
+                || document.querySelector(".table-container");
+            if (target) {
+                target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
     };
 
     card.addEventListener("click", toggle);
@@ -549,6 +567,21 @@ function cardMatches(a) {
 function clearCardFilter() {
     cardFilter = "";
     document.querySelectorAll(".stat-card").forEach(c => c.classList.remove("selected"));
+    updateActiveFilterBar();
+}
+
+function updateActiveFilterBar() {
+    const bar = document.getElementById("activeFilterBar");
+    const text = document.getElementById("activeFilterText");
+    if (!bar || !text) return;
+
+    if (cardFilter && CARD_FILTER_LABELS[cardFilter]) {
+        text.textContent = CARD_FILTER_LABELS[cardFilter];
+        bar.classList.remove("hidden");
+    } else {
+        bar.classList.add("hidden");
+        text.textContent = "";
+    }
 }
 
 
