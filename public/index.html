@@ -294,8 +294,23 @@
 
                 </select>
 
+                <label class="date-filter">
+                    Due from
+                    <input id="dueDateFrom" type="date" onchange="filterAlerts()">
+                </label>
+
+                <label class="date-filter">
+                    Due to
+                    <input id="dueDateTo" type="date" onchange="filterAlerts()">
+                </label>
+
+                <button id="downloadAlertsBtn" class="secondary-button download-alerts-button" type="button">
+                    Download CSV
+                </button>
+
             </div>
 
+            <p id="dateRangeError" class="date-range-error hidden" role="alert"></p>
 
             <!-- ALERT TABLE -->
 

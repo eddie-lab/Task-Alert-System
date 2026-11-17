@@ -1,4 +1,5 @@
 let allAlerts = [];
+let visibleAlerts = [];
 let currentUser = null;
 
 function escapeHtml(value) {
@@ -570,8 +571,25 @@ function filterAlerts() {
             .getElementById("statusFilter")
             .value;
 
+    const fromDate = document.getElementById("dueDateFrom").value;
+    const toDate = document.getElementById("dueDateTo").value;
+    const dateRangeError = document.getElementById("dateRangeError");
+    const downloadButton = document.getElementById("downloadAlertsBtn");
 
-    const filtered =
+    if (fromDate && toDate && fromDate > toDate) {
+        dateRangeError.textContent = "The start date must be on or before the end date.";
+        dateRangeError.classList.remove("hidden");
+        downloadButton.disabled = true;
+        visibleAlerts = [];
+        renderAlerts(visibleAlerts);
+        return;
+    }
+
+    dateRangeError.textContent = "";
+    dateRangeError.classList.add("hidden");
+    downloadButton.disabled = false;
+
+    visibleAlerts =
         allAlerts.filter(alert => {
 
             const matchesSearch =
@@ -596,19 +614,64 @@ function filterAlerts() {
                 !status ||
                 (status === "Overdue" ? isOverdue : alert.status === status);
 
+            const dueDate = alert.dueDate ? String(alert.dueDate).slice(0, 10) : "";
+            const matchesDateRange =
+                (!fromDate || (dueDate && dueDate >= fromDate)) &&
+                (!toDate || (dueDate && dueDate <= toDate));
 
             return (
                 matchesSearch &&
                 matchesSubsidiary &&
                 matchesStatus &&
+                matchesDateRange &&
                 cardMatches(alert)
             );
 
         });
 
 
-    renderAlerts(filtered);
+    renderAlerts(visibleAlerts);
 }
+
+function downloadFilteredAlerts() {
+    const csvCell = value => {
+        let text = String(value ?? "");
+        if (/^[=+\-@\t\r]/.test(text)) {
+            text = "'" + text;
+        }
+        return `"${text.replace(/"/g, '""')}"`;
+    };
+
+    const rows = [
+        ["Alert", "Description", "Company", "Collaborators", "Due Date", "Frequency", "Status"],
+        ...visibleAlerts.map(alert => [
+            alert.name,
+            alert.description,
+            alert.subsidiary,
+            alert.owner,
+            alert.dueDate ? formatDate(alert.dueDate) : "",
+            `Every ${alert.frequencyValue ?? ""} ${alert.frequencyUnit || ""}`.trim(),
+            alert.status
+        ])
+    ];
+
+    const csv = "\uFEFF" + rows
+        .map(row => row.map(csvCell).join(","))
+        .join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "alerts.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+document.getElementById("downloadAlertsBtn")
+    .addEventListener("click", downloadFilteredAlerts);
 
 
 // ==============================
