@@ -19,12 +19,17 @@ app.use(express.urlencoded({ extended: true }));
 
 const session = require("express-session");
 const isProduction = process.env.NODE_ENV === "production";
+const useSqlStorage = isSqlStorage();
 
 if (!process.env.SESSION_SECRET) {
     if (isProduction) {
         throw new Error("SESSION_SECRET must be set when NODE_ENV=production.");
     }
     console.warn("SESSION_SECRET is not set. Using an insecure development secret.");
+}
+
+if (isProduction && !useSqlStorage) {
+    throw new Error("STORAGE_PROVIDER=sql is required in production so sessions use PostgreSQL instead of MemoryStore.");
 }
 
 // Behind a reverse proxy or HTTPS load balancer, set TRUST_PROXY=1 (and COOKIE_SECURE=true for HTTPS).
@@ -45,12 +50,15 @@ const sessionOptions = {
     }
 };
 
-// With PostgreSQL, sessions live in the database, so a restart does not sign everyone out.
-// The store is attached lazily: the pool only exists once the database has been checked at startup.
+// JSON storage is for local development; production sessions use PostgreSQL.
 let sessionStore = null;
-const sessionHandlerWithoutStore = session(sessionOptions);
-let sessionHandler = sessionHandlerWithoutStore;
-app.use((req, res, next) => sessionHandler(req, res, next));
+let sessionHandler = useSqlStorage ? null : session(sessionOptions);
+app.use((req, res, next) => {
+    if (!sessionHandler) {
+        return next(new Error("Session store has not been initialized."));
+    }
+    return sessionHandler(req, res, next);
+});
 
 //  API
 const { requireLogin } = require("./middleware/requireLogin");
@@ -72,6 +80,8 @@ app.use("/api/users", requireLogin, userRouter);
 const { router: authRouter } = require("./routes/auth");
 app.use("/api/auth", authRouter);
 
+const { getUserById } = require("./services/userService");
+
 //settings
 const settingsRouter = require("./routes/settings");
 app.use("/api/settings", requireLogin, settingsRouter);
@@ -80,6 +90,27 @@ app.use("/api/settings", requireLogin, settingsRouter);
 const adminUsersRouter = require("./routes/adminUsers");
 app.use("/api/admin/users", requireLogin, adminUsersRouter);
 
+app.get(["/", "/index.html"], async (req, res, next) => {
+    try {
+        const userId = req.session && req.session.userId;
+        const user = userId ? await getUserById(userId) : null;
+
+        if (!user) {
+            return res.redirect("/signup.html");
+        }
+
+        if (user.active === false) {
+            return res.redirect(
+                "/signup.html?error=" +
+                encodeURIComponent("Your account has been deactivated. Please contact an administrator.")
+            );
+        }
+
+        return res.sendFile(path.join(__dirname, "public", "index.html"));
+    } catch (error) {
+        return next(error);
+    }
+});
 
 // frontend
 app.use(express.static(path.join(__dirname, "public")));
@@ -91,17 +122,11 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-app.get("/", (req, res) => {
-    res.sendFile(
-        path.join(__dirname, "public", "index.html")
-    );
-});
-
 async function startServer() {
     await initializeDatabase();
     await verifyRequiredDocuments();
 
-    if (isSqlStorage()) {
+    if (useSqlStorage) {
         const PgSession = require("connect-pg-simple")(session);
         sessionStore = new PgSession({
             pool: await getPool(),
@@ -112,7 +137,7 @@ async function startServer() {
     }
 
     const server = app.listen(PORT, () => {
-        console.log(`Alert System running on http://localhost:${PORT}`);
+        console.log(`Alert System running on https://norrenalerts.norrenberger.com`);
         startScheduler();
     });
 

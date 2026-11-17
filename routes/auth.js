@@ -113,14 +113,20 @@ router.get("/callback", async (req, res) => {
                 req.session.pendingSignup = { name, email };
 
                 return res.redirect(
-                    "/signup.html?needsSubsidiary=1&question=" +
+                    "/signup.html?needsSignup=1&needsSubsidiary=1&question=" +
                     encodeURIComponent(resolution.question) +
                     "&options=" +
                     encodeURIComponent(JSON.stringify(resolution.options))
                 );
             }
 
-            user = await createUser({ name, email, subsidiary: resolution.subsidiary });
+            req.session.pendingSignup = {
+                name,
+                email,
+                subsidiary: resolution.subsidiary
+            };
+
+            return res.redirect("/signup.html?needsSignup=1");
         }
 
         req.session.userId = user.id;
@@ -150,7 +156,10 @@ router.post("/complete-signup", async (req, res) => {
             return res.status(400).json({ message: "No signup in progress." });
         }
 
-        const resolution = await resolveSubsidiary(pending.email, req.body.subsidiary);
+        const resolution = await resolveSubsidiary(
+            pending.email,
+            req.body.subsidiary || pending.subsidiary
+        );
 
         if (!resolution.allowed || resolution.ambiguous) {
             return res.status(400).json({ message: "Invalid subsidiary selection." });
@@ -161,6 +170,12 @@ router.post("/complete-signup", async (req, res) => {
             email: pending.email,
             subsidiary: resolution.subsidiary
         });
+
+        if (user.active === false) {
+            return res.status(403).json({
+                message: "Your account has been deactivated. Please contact an administrator."
+            });
+        }
 
         delete req.session.pendingSignup;
 

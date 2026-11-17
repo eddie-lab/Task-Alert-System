@@ -202,6 +202,8 @@ function renderCurrentUserHeader() {
         return;
     }
 
+    updateDashboardHeader();
+
     document.getElementById("userAvatar").textContent =
         getInitials(currentUser.name);
 
@@ -227,6 +229,33 @@ function renderCurrentUserHeader() {
             : "none";
 
     applySubsidiaryControls();
+}
+
+function updateDashboardHeader() {
+    if (!currentUser) {
+        return;
+    }
+
+    const now = new Date();
+    const firstName = String(currentUser.name || "").trim().split(/\s+/)[0];
+    const greeting = now.getHours() < 12
+        ? "Good morning"
+        : now.getHours() < 18
+            ? "Good afternoon"
+            : "Good evening";
+
+    document.getElementById("dashboardGreeting").textContent =
+        `${greeting}, ${firstName || "there"}`;
+
+    const dateTime = document.getElementById("dashboardDateTime");
+    dateTime.dateTime = now.toISOString();
+    dateTime.textContent = new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(now);
 }
 
 // SUBSIDIARY FILTERS
@@ -1219,3 +1248,4 @@ function formatDate(date) {
 loadCurrentUser();
 loadDashboard();
 loadAlerts();
+setInterval(updateDashboardHeader, 60_000);

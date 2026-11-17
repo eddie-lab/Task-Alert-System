@@ -2,7 +2,11 @@ const params = new URLSearchParams(window.location.search);
 
 const errorBox = document.getElementById("authError");
 const signInButton = document.getElementById("microsoftSignInButton");
-const subsidiaryStep = document.getElementById("subsidiaryStep");
+const signupStep = document.getElementById("signupStep");
+const signupMessage = document.getElementById("signupMessage");
+const signinTitle = document.getElementById("signinTitle");
+const signinDescription = document.getElementById("signinDescription");
+const subsidiaryFields = document.getElementById("subsidiaryFields");
 const subsidiaryLabel = document.getElementById("subsidiaryQuestionLabel");
 const subsidiarySelect = document.getElementById("subsidiaryChoice");
 const completeButton = document.getElementById("completeSignupButton");
@@ -12,26 +16,38 @@ if (params.get("error")) {
     errorBox.classList.remove("hidden");
 }
 
-if (params.get("needsSubsidiary")) {
+const needsSignup = params.get("needsSignup") === "1";
+const needsSubsidiary = params.get("needsSubsidiary") === "1";
 
+if (needsSignup || needsSubsidiary) {
     signInButton.style.display = "none";
-    subsidiaryStep.classList.remove("hidden");
+    signupStep.classList.remove("hidden");
+    signinTitle.textContent = "Complete your signup";
+    completeButton.textContent = "Complete signup";
 
-    subsidiaryLabel.textContent =
-        params.get("question") || "Which subsidiary are you part of?";
+    if (needsSubsidiary) {
+        signinDescription.textContent = "Choose your subsidiary to finish creating your account.";
+        subsidiaryLabel.textContent =
+            params.get("question") || "Which subsidiary are you part of?";
 
-    let options = [];
+        let options = [];
 
-    try {
-        const parsed = JSON.parse(params.get("options") || "[]");
-        options = Array.isArray(parsed) ? parsed.filter(o => typeof o === "string") : [];
-    } catch (error) {
-        options = [];
+        try {
+            const parsed = JSON.parse(params.get("options") || "[]");
+            options = Array.isArray(parsed) ? parsed.filter(o => typeof o === "string") : [];
+        } catch (error) {
+            options = [];
+        }
+
+        subsidiarySelect.replaceChildren(
+            ...options.map(option => new Option(option, option))
+        );
+    } else {
+        signinDescription.textContent = "Your Microsoft account is verified. Complete signup to create your account.";
+        signupMessage.textContent = "Continue to finish creating your account.";
+        signupMessage.classList.remove("hidden");
+        subsidiaryFields.classList.add("hidden");
     }
-
-    subsidiarySelect.replaceChildren(
-        ...options.map(option => new Option(option, option))
-    );
 }
 
 completeButton?.addEventListener("click", async () => {

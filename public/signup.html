@@ -18,18 +18,21 @@
 
             <div class="signin-intro">
                 <h1 id="signinTitle">Welcome back</h1>
-                <p>Sign in with your Microsoft work account to continue.</p>
+                <p id="signinDescription">Sign in with your Microsoft work account to continue.</p>
             </div>
 
             <div id="authError" class="signin-error hidden" role="alert"></div>
 
-            <div id="subsidiaryStep" class="signin-subsidiary-step hidden">
-                <label id="subsidiaryQuestionLabel" for="subsidiaryChoice">
-                    Which subsidiary are you part of?
-                </label>
-                <select id="subsidiaryChoice"></select>
+            <div id="signupStep" class="signin-subsidiary-step hidden">
+                <p id="signupMessage" class="hidden"></p>
+                <div id="subsidiaryFields" class="signin-subsidiary-fields">
+                    <label id="subsidiaryQuestionLabel" for="subsidiaryChoice">
+                        Which subsidiary are you part of?
+                    </label>
+                    <select id="subsidiaryChoice"></select>
+                </div>
                 <button id="completeSignupButton" class="signin-button signin-button-primary">
-                    Continue
+                    Complete signup
                 </button>
             </div>
 

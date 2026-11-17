@@ -1,4 +1,4 @@
-const { getDocument, saveDocument } = require("./database");
+const { getDocument, saveDocument, updateDocument } = require("./database");
 
    //DATA FUNCTIONS
 
@@ -78,24 +78,33 @@ async function updateUser(id, changes) {
 
 async function createUser({ name, email, subsidiary }) {
 
-    const users = await getUsers();
+    let createdUser;
 
-    const role = users.length === 0 ? "Administrator" : "User";
+    await updateDocument("users", users => {
+        const existingUser = users.find(
+            user => user.email.toLowerCase() === String(email).toLowerCase()
+        );
 
-    const newUser = {
-        id: generateUserId(users),
-        name,
-        email,
-        role,
-        subsidiary: role === "Administrator" ? null : subsidiary,
-        active: true
-    };
+        if (existingUser) {
+            createdUser = existingUser;
+            return users;
+        }
 
-    users.push(newUser);
+        const role = users.length === 0 ? "Administrator" : "User";
 
-    await saveDocument("users", users);
+        createdUser = {
+            id: generateUserId(users),
+            name,
+            email,
+            role,
+            subsidiary: role === "Administrator" ? null : subsidiary,
+            active: true
+        };
 
-    return newUser;
+        return [...users, createdUser];
+    });
+
+    return createdUser;
 }
 
 

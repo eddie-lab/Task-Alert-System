@@ -67,13 +67,14 @@ also attempted on startup.
 The application will stop at startup with a clear error if required documents
 have not been imported, or if the database is unreachable.
 
-The application keeps sessions in Express's in-memory session store; this
-migration covers application records, not login sessions.
+Local JSON-file development uses Express's in-memory session store. Production
+requires `STORAGE_PROVIDER=sql` so login sessions are stored in PostgreSQL and
+survive restarts; the app refuses to start in production with JSON storage.
 
 ## PostgreSQL notes
 
 - Edits take a row lock (`SELECT ... FOR UPDATE`), so two running copies of the app cannot overwrite each other's saves.
 - The reminder scheduler takes a PostgreSQL advisory lock each cycle, so only one copy checks alerts at a time and reminders are not sent twice. Set `SCHEDULER_ENABLED=false` to keep it off a copy entirely.
-- With `STORAGE_PROVIDER=sql`, sign-in sessions are stored in the `user_sessions` table (created automatically), so restarts do not sign people out.
+- With `STORAGE_PROVIDER=sql`, sign-in sessions are stored in the `user_sessions` table (created automatically), so restarts do not sign people out. The PostgreSQL session middleware is initialized only after the database is ready.
 - `SESSION_SECRET` is required when `NODE_ENV=production`. Behind HTTPS set `TRUST_PROXY=1` and `COOKIE_SECURE=true`.
 - PostgreSQL tests: `TEST_DATABASE_URL=<empty test database> PG_SSL=false npm test`.
