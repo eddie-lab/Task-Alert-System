@@ -180,7 +180,7 @@ async function processAlerts() {
                     });
                     console.log(`Reminder sent: ${alert.id} - ${alert.name}`);
                 } catch (error) {
-                    console.error(`Failed to send reminder for ${alert.id}:`, error.message);
+                    console.error(`Failed to send reminder for ${alert.id}:`, (error.code ? `${error.code}: ` : "") + error.message);
                 }
             }
 
@@ -197,7 +197,7 @@ async function processAlerts() {
                     });
                     console.log(`Due-date notice sent: ${alert.id} - ${alert.name}`);
                 } catch (error) {
-                    console.error(`Failed to send due-date notice for ${alert.id}:`, error.message);
+                    console.error(`Failed to send due-date notice for ${alert.id}:`, (error.code ? `${error.code}: ` : "") + error.message);
                 }
             }
 
@@ -215,7 +215,7 @@ async function processAlerts() {
                     });
                     console.log(`Escalation sent: ${alert.id} - ${alert.name}`);
                 } catch (error) {
-                    console.error(`Failed to send escalation for ${alert.id}:`, error.message);
+                    console.error(`Failed to send escalation for ${alert.id}:`, (error.code ? `${error.code}: ` : "") + error.message);
                 }
             }
 
@@ -258,7 +258,7 @@ async function processAlerts() {
                         });
                         console.log(`Post-due reminder sent: ${alert.id}`);
                     } catch (error) {
-                        console.error(`Failed post-due reminder for ${alert.id}:`, error.message);
+                        console.error(`Failed post-due reminder for ${alert.id}:`, (error.code ? `${error.code}: ` : "") + error.message);
                     }
                 }
             }

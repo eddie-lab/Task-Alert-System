@@ -1945,3 +1945,364 @@ tbody tr:hover {
         padding: 10px 8px;
     }
 }
+
+
+/* ==============================
+   ALERT ACTIONS MENU + MOBILE CARDS
+   ============================== */
+
+.card-toggle {
+    display: none;
+}
+
+.actions-trigger {
+    background: var(--navy-tint-bg);
+    color: var(--navy-tint-text);
+}
+
+.actions-trigger:hover {
+    background: #D6E1EB;
+}
+
+.actions-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+}
+
+.actions-menu {
+    position: fixed;
+    min-width: 190px;
+    background: #fff;
+    border: 1px solid #dde3ea;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(19, 42, 70, 0.18);
+    overflow: hidden;
+}
+
+.actions-menu__title,
+.actions-menu__close {
+    display: none;
+}
+
+.actions-menu__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+    border: 0;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    cursor: pointer;
+}
+
+.actions-menu__item:hover,
+.actions-menu__item:focus-visible {
+    background: #f3f6f9;
+}
+
+.actions-menu__item--danger {
+    color: #b42318;
+    border-top: 1px solid #e8eef4;
+}
+
+@media (max-width: 700px) {
+
+    .alert-row {
+        position: relative;
+    }
+
+    /* Collapsed by default: name, subsidiary and status only */
+    .table-container tbody tr.alert-row:not(.expanded) td[data-label="Collaborator(s)"],
+    .table-container tbody tr.alert-row:not(.expanded) td[data-label="Due Date"],
+    .table-container tbody tr.alert-row:not(.expanded) td[data-label="Frequency"],
+    .table-container tbody tr.alert-row:not(.expanded) td[data-label="Action"] {
+        display: none;
+    }
+
+    .table-container tbody tr.alert-row td:first-child {
+        display: block;
+        padding-right: 48px;
+        min-height: 44px;
+        cursor: pointer;
+    }
+
+    .table-container tbody tr.alert-row td:first-child::before {
+        content: none;
+    }
+
+    .card-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 4px;
+        right: 0;
+        width: 44px;
+        height: 44px;
+        border: 0;
+        background: none;
+        color: var(--navy);
+        cursor: pointer;
+    }
+
+    .card-toggle svg {
+        transition: transform 0.2s ease;
+    }
+
+    .alert-row.expanded .card-toggle svg {
+        transform: rotate(180deg);
+    }
+
+    .alert-actions {
+        width: 100%;
+    }
+
+    .actions-trigger {
+        width: 100%;
+        min-height: 48px;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 10px;
+    }
+
+    /* Bottom sheet */
+    .actions-backdrop {
+        background: rgba(19, 42, 70, 0.5);
+    }
+
+    .actions-menu {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        border: 0;
+        border-radius: 18px 18px 0 0;
+        padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+        box-shadow: none;
+    }
+
+    .actions-menu__title {
+        display: block;
+        font-size: 13px;
+        color: #4b5b70;
+        padding: 0 4px 8px;
+    }
+
+    .actions-menu__item {
+        min-height: 52px;
+        font-size: 16px;
+        padding: 0 4px;
+    }
+
+    .actions-menu__close {
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+        min-height: 48px;
+        border: 1px solid #dde3ea;
+        border-radius: 10px;
+        background: #fff;
+        font: inherit;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--navy);
+        cursor: pointer;
+    }
+}
+
+
+/* ==============================
+   DATE FILTERS: label sits beside the input, never over the calendar icon
+   ============================== */
+
+.filters .date-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 42px;
+    padding-left: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.filters .date-field:focus-within {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+}
+
+.filters .date-field .date-placeholder,
+.filters .date-field.has-value .date-placeholder {
+    position: static;
+    transform: none;
+    display: inline;
+    flex: 0 0 auto;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    pointer-events: none;
+}
+
+.filters .date-field .date-input {
+    flex: 1;
+    min-width: 0;
+    min-height: 40px;
+    border: 0;
+    border-radius: 0 6px 6px 0;
+    background: transparent;
+    padding: 8px 8px 8px 0;
+    outline: none;
+}
+
+/* ==============================
+   INFO (i) BUTTONS IN THE CREATE ALERT FORM
+   ============================== */
+
+.info-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-left: 4px;
+    padding: 0;
+    border: 1px solid #9ca3af;
+    border-radius: 50%;
+    background: #fff;
+    color: #6b7280;
+    font: italic 700 11px Georgia, serif;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.info-toggle:hover,
+.info-toggle[aria-expanded="true"] {
+    background: var(--navy-tint-bg);
+    border-color: var(--navy);
+    color: var(--navy);
+}
+
+.info-toggle:focus-visible {
+    outline: 2px solid var(--navy);
+    outline-offset: 2px;
+}
+
+.field-info {
+    margin: 0 0 8px;
+    padding: 8px 10px;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    background: #eff6ff;
+    color: #1e40af;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.field-info[hidden] {
+    display: none;
+}
+
+@media (max-width: 700px) {
+
+    .info-toggle {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+
+/* ==============================
+   CREATE ALERT: SECTIONS
+   ============================== */
+
+.form-section {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+}
+
+#singleAlertDivider + .form-section {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.form-section__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    margin-bottom: 14px;
+}
+
+.form-section__head h3 {
+    margin: 0;
+    font-size: 15px;
+    color: var(--navy);
+}
+
+.form-section__head span {
+    font-size: 12.5px;
+    color: #6b7280;
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 7px;
+}
+
+.form-group .label-row label {
+    margin: 0;
+}
+
+.form-group {
+    min-width: 0;
+}
+
+/* keep native date/time inputs inside their column (iOS overflow) */
+.form-group input[type="date"],
+.form-group input[type="time"] {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 44px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(19, 42, 70, 0.12);
+}
+
+@media (max-width: 700px) {
+
+    .form-row.form-row--pair {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px;
+        min-height: 44px;
+    }
+}

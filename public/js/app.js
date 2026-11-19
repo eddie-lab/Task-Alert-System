@@ -419,6 +419,172 @@ async function loadAlerts() {
 
 
 // ==============================
+// MOBILE CARDS + ACTIONS MENU
+// ==============================
+
+const expandedAlertIds = new Set();
+const mobileQuery = window.matchMedia("(max-width: 700px)");
+
+// Tap a card (mobile only) to expand / collapse its details.
+document.addEventListener("click", event => {
+
+    if (!mobileQuery.matches) {
+        return;
+    }
+
+    const cell = event.target.closest("#alertsTable td:first-child");
+
+    if (!cell) {
+        return;
+    }
+
+    const row = cell.closest("tr.alert-row");
+
+    if (!row) {
+        return;
+    }
+
+    const open = row.classList.toggle("expanded");
+
+    if (open) {
+        expandedAlertIds.add(row.dataset.id);
+    } else {
+        expandedAlertIds.delete(row.dataset.id);
+    }
+
+    const toggle = row.querySelector(".card-toggle");
+
+    if (toggle) {
+        toggle.setAttribute("aria-expanded", String(open));
+    }
+});
+
+function alertActionItems(alert) {
+
+    const items = [];
+
+    if (alert.status === "Cancelled") {
+        items.push({ label: "Edit", run: () => editAlert(alert.id) });
+        items.push({ label: "Reactivate", run: () => reactivateAlert(alert.id) });
+    } else if (alert.status !== "Completed") {
+        items.push({ label: "Edit", run: () => editAlert(alert.id) });
+        items.push({ label: "Mark as done", run: () => completeAlert(alert.id) });
+        items.push({ label: "Cancel alert", run: () => cancelAlert(alert.id) });
+    }
+
+    items.push({
+        label: "Delete",
+        danger: true,
+        run: () => deleteAlert(alert.id)
+    });
+
+    return items;
+}
+
+function closeAlertActions() {
+
+    const existing = document.getElementById("alertActionsMenu");
+
+    if (existing) {
+        existing.remove();
+    }
+
+    document.removeEventListener("keydown", onActionsKeydown);
+}
+
+function onActionsKeydown(event) {
+
+    if (event.key === "Escape") {
+        closeAlertActions();
+    }
+}
+
+// Bottom sheet on mobile, small dropdown anchored to the button on desktop.
+function openAlertActions(id, trigger) {
+
+    closeAlertActions();
+
+    const target = allAlerts.find(a => a.id === id);
+
+    if (!target) {
+        return;
+    }
+
+    const backdrop = document.createElement("div");
+
+    backdrop.id = "alertActionsMenu";
+    backdrop.className = "actions-backdrop";
+
+    const menu = document.createElement("div");
+
+    menu.className = "actions-menu";
+    menu.setAttribute("role", "menu");
+
+    const title = document.createElement("div");
+
+    title.className = "actions-menu__title";
+    title.textContent = target.name;
+    menu.appendChild(title);
+
+    alertActionItems(target).forEach(item => {
+
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.setAttribute("role", "menuitem");
+        button.className =
+            "actions-menu__item" + (item.danger ? " actions-menu__item--danger" : "");
+        button.textContent = item.label;
+
+        button.addEventListener("click", () => {
+            closeAlertActions();
+            item.run();
+        });
+
+        menu.appendChild(button);
+    });
+
+    const close = document.createElement("button");
+
+    close.type = "button";
+    close.className = "actions-menu__close";
+    close.textContent = "Close";
+    close.addEventListener("click", closeAlertActions);
+    menu.appendChild(close);
+
+    backdrop.appendChild(menu);
+
+    backdrop.addEventListener("click", event => {
+        if (event.target === backdrop) {
+            closeAlertActions();
+        }
+    });
+
+    document.body.appendChild(backdrop);
+    document.addEventListener("keydown", onActionsKeydown);
+
+    if (!mobileQuery.matches && trigger) {
+
+        const rect = trigger.getBoundingClientRect();
+        const menuHeight = menu.offsetHeight;
+        const below = window.innerHeight - rect.bottom;
+        const top = below >= menuHeight + 8
+            ? rect.bottom + 4
+            : Math.max(8, rect.top - menuHeight - 4);
+
+        menu.style.top = `${top}px`;
+        menu.style.right = `${Math.max(8, window.innerWidth - rect.right)}px`;
+    }
+
+    const first = menu.querySelector(".actions-menu__item");
+
+    if (first) {
+        first.focus();
+    }
+}
+
+
+// ==============================
 // DISPLAY ALERTS
 // ==============================
 
@@ -449,45 +615,31 @@ function renderAlerts(alerts) {
             ? completionMetaHtml(alert)
             : "";
 
-        const actionsHtml =
-            alert.status === "Cancelled"
-                ? `
+        const isExpanded = expandedAlertIds.has(alert.id);
+
+        row.className = "alert-row" + (isExpanded ? " expanded" : "");
+        row.dataset.id = alert.id;
+
+        const actionsHtml = `
                         <button
-                            class="action-button edit-button"
-                            onclick="editAlert('${alert.id}')">
-                            Edit
-                        </button>
-                        <button
-                            class="action-button reactivate-button"
-                            onclick="reactivateAlert('${alert.id}')">
-                            Reactivate
-                        </button>
-                    `
-                : alert.status === "Completed"
-                    ? `
-                        <span class="completed-label">✓ Done</span>
-                    `
-                    : `
-                        <button
-                            class="action-button edit-button"
-                            onclick="editAlert('${alert.id}')">
-                            Edit
-                        </button>
-                        <button
-                            class="action-button complete-button"
-                            onclick="completeAlert('${alert.id}')">
-                            Done
-                        </button>
-                        <button
-                            class="action-button cancel-button"
-                            onclick="cancelAlert('${alert.id}')">
-                            Cancel
+                            type="button"
+                            class="action-button actions-trigger"
+                            aria-haspopup="menu"
+                            onclick="openAlertActions('${alert.id}', this)">
+                            Actions <span aria-hidden="true">▾</span>
                         </button>
                     `;
 
         row.innerHTML = `
 
             <td data-label="Alert">
+                <button
+                    type="button"
+                    class="card-toggle"
+                    aria-expanded="${isExpanded}"
+                    aria-label="Show or hide details for ${escapeHtml(alert.name)}">
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
                 <strong>${escapeHtml(alert.name)}</strong>
                 <br>
                 <small>
@@ -1160,6 +1312,53 @@ async function cancelAlert(id) {
 
 
 // ==============================
+// DELETE ALERT
+// ==============================
+
+async function deleteAlert(id) {
+
+    const target = allAlerts.find(a => a.id === id);
+
+    const confirmed =
+        confirm(
+            `Delete this alert?\n\n"${target ? target.name : "This alert"}" will be permanently removed. This can't be undone.`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    const response =
+        await fetch(
+            `/api/alerts/${id}`,
+            { method: "DELETE" }
+        );
+
+    if (!response.ok) {
+
+        const errorData =
+            await response.json().catch(() => ({}));
+
+        alert(
+            errorData.message ||
+            "Unable to delete alert."
+        );
+
+        return;
+    }
+
+    expandedAlertIds.delete(id);
+
+    await loadAlerts();
+    await loadDashboard();
+
+    alert(
+        "Alert deleted."
+    );
+}
+
+
+// ==============================
 // REACTIVATE ALERT
 // ==============================
 
@@ -1358,3 +1557,28 @@ loadCurrentUser();
 loadDashboard();
 loadAlerts();
 setInterval(updateDashboardHeader, 60_000);
+
+// ==============================
+// INFO (i) BUTTONS: hidden hints that open on click
+// ==============================
+
+document.addEventListener("click", event => {
+
+    const button = event.target.closest(".info-toggle");
+
+    if (!button) {
+        return;
+    }
+
+    const panel =
+        document.getElementById(button.getAttribute("aria-controls"));
+
+    if (!panel) {
+        return;
+    }
+
+    const opening = panel.hidden;
+
+    panel.hidden = !opening;
+    button.setAttribute("aria-expanded", String(opening));
+});

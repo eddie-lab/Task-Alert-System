@@ -10,6 +10,7 @@ const {
     calculateEscalationDate
 } = require("../services/alertSchedulingService");
 const { validateAlertInput } = require("../services/alertValidation");
+const { sendCompletedEmail } = require("../services/emailService");
 const multer = require("multer");
 const {
     buildTemplateBuffer,
@@ -518,6 +519,21 @@ router.post("/:id/complete", async (req, res) => {
 
 
         /*
+         * Tell the collaborators this alert is done (not the person who
+         * completed it). A mail problem must never undo the completion.
+         */
+
+        sendCompletedEmail(currentAlert, {
+            excludeEmails: [currentUser.email]
+        }).catch(error => {
+            console.error(
+                `Failed to send completion notice for ${currentAlert.id}:`,
+                error.message
+            );
+        });
+
+
+        /*
          * Return both records
          */
 
@@ -760,6 +776,53 @@ router.post("/:id/reactivate", async (req, res) => {
 
         res.status(500).json({
             message: "Unable to reactivate alert"
+        });
+    }
+});
+
+
+// Delete alert (permanent)
+router.delete("/:id", async (req, res) => {
+
+    try {
+
+        const alerts = await getAlerts();
+
+        const currentUser = getCurrentUser(req);
+
+        const index = alerts.findIndex(
+            x => x.id === req.params.id
+        );
+
+        if (index === -1) {
+
+            return res.status(404).json({
+                message: "Alert not found"
+            });
+        }
+
+        if (!canManageAlert(currentUser, alerts[index])) {
+
+            return res.status(403).json({
+                message: "You do not have permission to delete this alert"
+            });
+        }
+
+        const [removed] = alerts.splice(index, 1);
+
+        await saveAlerts(alerts);
+
+        res.json({
+            message: "Alert deleted",
+            id: removed.id
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            message: "Unable to delete alert"
         });
     }
 });

@@ -36,6 +36,22 @@ function formatDueDate(dueDate) {
 }
 
 
+// Full timestamp with timezone, e.g. "19 Nov 2026, 14:05 WAT".
+// Set APP_TIMEZONE (e.g. Africa/Lagos) if the server clock is not in your timezone.
+function formatTimestamp(value) {
+
+    return new Date(value).toLocaleString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZoneName: "short",
+        timeZone: process.env.APP_TIMEZONE || undefined
+    });
+}
+
+
 /* =========================================================
    RENDER A TEMPLATE AGAINST AN ALERT
 ========================================================= */
@@ -64,6 +80,10 @@ function renderTemplate(templateString, alert, asHtml = false) {
         dueDate: formatDueDate(alert.dueDate),
         subsidiary: clean(alert.subsidiary),
         owner: clean(alert.owner || "Not set"),
+        completedBy: clean(alert.completedBy || "a collaborator"),
+        completedDate: alert.completedDate
+            ? formatTimestamp(alert.completedDate)
+            : "",
         loginUrl: `${APP_URL}/signup.html`
     };
 

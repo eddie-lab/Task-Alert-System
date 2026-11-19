@@ -71,6 +71,7 @@ app.use("/api/dashboard", requireLogin, dashboardRouter);
 
 //scheduler
 const { startScheduler, stopScheduler } = require("./scheduler/alertProcessor");
+const { verifyEmailConnection } = require("./services/emailService");
 
 //user
 const userRouter = require("./routes/user");
@@ -138,6 +139,7 @@ async function startServer() {
 
     const server = app.listen(PORT, () => {
         console.log(`Alert System running on http://localhost:${PORT}`);
+        verifyEmailConnection().catch(() => {});
         startScheduler();
     });
 
