@@ -369,66 +369,64 @@
 
 
 <!-- CREATE ALERT MODAL -->
+<div id="alertModal" class="modal hidden">
+    <div class="modal-content alert-modal-content">
 
-<div id="alertModal"
-     class="modal hidden">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <div>
-
+        <div class="modal-header alert-modal-header">
+            <div class="alert-modal-title-wrap">
+                <div class="alert-modal-eyebrow">ALERT MANAGEMENT</div>
                 <h2 id="alertModalTitle">Create Alert</h2>
-
-                <p>
-                    Configure a new recurring alert.
-                </p>
-
+                <p>Set up the responsibility, schedule and notifications for this alert.</p>
             </div>
-
-            <button
-                class="close-button"
-                onclick="closeCreateAlert()">
-
-                ×
-
-            </button>
-
+            <button class="close-button" onclick="closeCreateAlert()" aria-label="Close">×</button>
         </div>
-
 
         <form id="alertForm">
 
-            <div id="batchImportPanel" class="batch-import">
+            <div id="batchImportPanel" class="batch-import alert-import-card">
+                <div class="batch-import__icon" aria-hidden="true">↥</div>
                 <div class="batch-import__text">
-                    <strong>Batch import</strong>
-                    <p>Download the Excel template, fill one alert per row, then upload the file.</p>
+                    <strong>Import multiple alerts</strong>
+                    <p>Have several alerts to create? Download the template, complete one alert per row, and upload it here.</p>
                 </div>
                 <div class="batch-import__actions">
                     <button type="button" class="action-button edit-button" id="downloadAlertTemplateBtn">Download template</button>
                     <label class="action-button complete-button batch-import__file-label">
-                        Upload filled template
+                        Upload template
                         <input type="file" id="alertImportFile" accept=".xlsx" hidden>
                     </label>
                 </div>
                 <div id="batchImportResult" class="batch-import__result" hidden></div>
             </div>
 
-            <p id="singleAlertDivider" class="batch-import__divider">Or create one alert</p>
+            <div class="alert-form-divider">
+                <span>Or create an alert manually</span>
+            </div>
 
-            <section class="form-section"><div class="form-section__head"><h3>Details</h3><span>What is this alert about?</span></div>
-                <div class="form-group">
-                    <div class="label-row"><label for="alertName">Alert Name</label></div>
+            <!-- 01 BASIC DETAILS -->
+            <section class="form-section form-section--card">
+                <div class="form-section__head">
+                    <div class="form-section__number">01</div>
+                    <div>
+                        <h3>Basic details</h3>
+                        <span>Define what needs to be tracked and who owns it.</span>
+                    </div>
+                </div>
+
+                <div class="form-group form-group--full">
+                    <div class="label-row"><label for="alertName">Alert name <span class="required-mark">*</span></label></div>
                     <input id="alertName" required placeholder="e.g. Monthly Bank Reconciliation">
+                    <p class="field-hint">Use a clear name that tells the assignee exactly what the responsibility is.</p>
                 </div>
-                <div class="form-group">
+
+                <div class="form-group form-group--full">
                     <div class="label-row"><label for="alertDescription">Description</label></div>
-                    <textarea id="alertDescription" placeholder="Describe the activity..."></textarea>
+                    <textarea id="alertDescription" placeholder="Add a short description of the activity, expected outcome or instructions..."></textarea>
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
-                        <div class="label-row"><label for="alertSubsidiary">Subsidiary</label></div>
+                        <div class="label-row"><label for="alertSubsidiary">Subsidiary <span class="required-mark">*</span></label></div>
                         <select id="alertSubsidiary" required>
                             <option value="">Select subsidiary</option>
                             <option>Norrenberger Asset Management</option>
@@ -444,47 +442,70 @@
                             <div id="collaboratorSelected" class="collaborator-selected" aria-live="polite"></div>
                             <div id="collaboratorResults" class="collaborator-results" role="listbox" aria-label="Collaborator search results"></div>
                         </div>
+                        <p class="field-hint">Add people who should be associated with this alert.</p>
                     </div>
                 </div>
             </section>
 
-            <section class="form-section"><div class="form-section__head"><h3>Schedule</h3><span>When is it due, and how often?</span></div>
+            <!-- 02 SCHEDULE -->
+            <section class="form-section form-section--card">
+                <div class="form-section__head">
+                    <div class="form-section__number">02</div>
+                    <div>
+                        <h3>Schedule</h3>
+                        <span>Set the first deadline and recurring frequency.</span>
+                    </div>
+                </div>
+
                 <div class="form-row form-row--pair">
                     <div class="form-group">
-                        <div class="label-row"><label for="dueDate">First Due Date</label></div>
+                        <div class="label-row"><label for="dueDate">First due date <span class="required-mark">*</span></label></div>
                         <input id="dueDate" type="date" required>
                     </div>
                     <div class="form-group">
-                        <div class="label-row"><label for="dueTime">Due Time</label></div>
+                        <div class="label-row"><label for="dueTime">Due time <span class="required-mark">*</span></label></div>
                         <input id="dueTime" type="time" required>
                     </div>
                 </div>
-                <div class="form-row form-row--pair">
-                    <div class="form-group">
-                        <div class="label-row"><label for="frequencyValue">Repeat Every</label></div>
-                        <input id="frequencyValue" type="number" value="1" min="1">
-                    </div>
-                    <div class="form-group">
-                        <div class="label-row"><label for="frequencyUnit">Frequency</label></div>
-                        <select id="frequencyUnit">
-                            <option value="day">Day</option>
-                            <option value="week">Week</option>
-                            <option value="month" selected>Month</option>
-                            <option value="quarter">Quarter</option>
-                            <option value="year">Year</option>
-                        </select>
+
+                <div class="repeat-box">
+                    <div class="repeat-box__label">Recurrence</div>
+                    <div class="form-row form-row--pair">
+                        <div class="form-group">
+                            <div class="label-row"><label for="frequencyValue">Repeat every</label></div>
+                            <input id="frequencyValue" type="number" value="1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <div class="label-row"><label for="frequencyUnit">Frequency</label></div>
+                            <select id="frequencyUnit">
+                                <option value="day">Day</option>
+                                <option value="week">Week</option>
+                                <option value="month" selected>Month</option>
+                                <option value="quarter">Quarter</option>
+                                <option value="year">Year</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section class="form-section"><div class="form-section__head"><h3>Reminder</h3><span>Nudge people before it is due</span></div>
+            <!-- 03 REMINDERS -->
+            <section class="form-section form-section--card">
+                <div class="form-section__head">
+                    <div class="form-section__number">03</div>
+                    <div>
+                        <h3>Reminders</h3>
+                        <span>Decide when people should be notified before the deadline.</span>
+                    </div>
+                </div>
+
                 <div class="form-row form-row--pair">
                     <div class="form-group">
-                        <div class="label-row"><label for="reminderValue">Remind Me</label></div>
+                        <div class="label-row"><label for="reminderValue">Remind me</label></div>
                         <input id="reminderValue" type="number" value="24" min="1">
                     </div>
                     <div class="form-group">
-                        <div class="label-row"><label for="reminderUnit">Before Due Date</label></div>
+                        <div class="label-row"><label for="reminderUnit">Before due date</label></div>
                         <select id="reminderUnit">
                             <option value="minute">Minutes</option>
                             <option value="hour" selected>Hours</option>
@@ -492,66 +513,94 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row form-row--pair">
-                    <div class="form-group">
-                        <div class="label-row"><label for="reminderRepeatValue">Repeat Reminder Every</label></div>
-                        <input id="reminderRepeatValue" type="number" value="0" min="0">
+
+                <div class="repeat-box">
+                    <div class="repeat-box__label">Repeat reminder</div>
+                    <div class="form-row form-row--pair">
+                        <div class="form-group">
+                            <div class="label-row"><label for="reminderRepeatValue">Repeat every</label></div>
+                            <input id="reminderRepeatValue" type="number" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <div class="label-row"><label for="reminderRepeatUnit">Unit</label></div>
+                            <select id="reminderRepeatUnit">
+                                <option value="minute" selected>Minutes</option>
+                                <option value="hour">Hours</option>
+                                <option value="day">Days</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <div class="label-row"><label for="reminderRepeatUnit">Unit</label></div>
-                        <select id="reminderRepeatUnit">
-                            <option value="minute" selected>Minutes</option>
-                            <option value="hour">Hours</option>
-                            <option value="day">Days</option>
-                        </select>
-                    </div>
+                    <p class="settings-hint">Leave at 0 to send the reminder once only. Repeated reminders stop at the due date.</p>
                 </div>
-                <p class="settings-hint">Optional. How often the reminder is sent again until the due date. Leave at 0 to send it only once, on the reminder date.</p>
             </section>
 
-            <section class="form-section"><div class="form-section__head"><h3>Recipients</h3><span>Who gets the emails?</span></div>
-                <div class="form-group">
-                    <div class="label-row"><label for="recipients">Email Recipients</label></div>
+            <!-- 04 RECIPIENTS -->
+            <section class="form-section form-section--card">
+                <div class="form-section__head">
+                    <div class="form-section__number">04</div>
+                    <div>
+                        <h3>Recipients</h3>
+                        <span>Choose who receives the alert emails.</span>
+                    </div>
+                </div>
+
+                <div class="form-group form-group--full">
+                    <div class="label-row"><label for="recipients">Email recipients</label></div>
                     <input id="recipients" placeholder="email1@company.com, email2@company.com">
+                    <p class="field-hint">Separate multiple email addresses with commas.</p>
                 </div>
             </section>
 
-            <section class="form-section"><div class="form-section__head"><h3>Escalation</h3><span>Optional: notify others if it is missed</span></div>
-                <label class="checkbox">
-                    <input type="checkbox" id="escalationEnabled">
-                    Enable escalation
+            <!-- 05 ESCALATION -->
+            <section class="form-section form-section--card form-section--last">
+                <div class="form-section__head">
+                    <div class="form-section__number">05</div>
+                    <div>
+                        <h3>Escalation</h3>
+                        <span>Automatically notify others when an alert is missed.</span>
+                    </div>
+                </div>
+
+                <label class="toggle-row" for="escalationEnabled">
+                    <span class="toggle-copy">
+                        <strong>Enable escalation</strong>
+                        <small>Notify designated recipients if the alert remains incomplete after its due date.</small>
+                    </span>
+                    <span class="switch">
+                        <input type="checkbox" id="escalationEnabled">
+                        <span class="switch-slider"></span>
+                    </span>
                 </label>
-                <div class="form-row form-row--pair">
-                    <div class="form-group">
-                        <div class="label-row"><label for="escalationValue">Escalate After</label></div>
-                        <input id="escalationValue" type="number" value="2" min="1">
+
+                <div class="escalation-fields">
+                    <div class="form-row form-row--pair">
+                        <div class="form-group">
+                            <div class="label-row"><label for="escalationValue">Escalate after</label></div>
+                            <input id="escalationValue" type="number" value="2" min="1">
+                        </div>
+                        <div class="form-group">
+                            <div class="label-row"><label for="escalationUnit">Unit</label></div>
+                            <select id="escalationUnit">
+                                <option value="hour">Hours</option>
+                                <option value="day">Days</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <div class="label-row"><label for="escalationUnit">Unit</label></div>
-                        <select id="escalationUnit">
-                            <option value="hour">Hours</option>
-                            <option value="day">Days</option>
-                        </select>
+                    <div class="form-group form-group--full">
+                        <div class="label-row"><label for="escalationRecipients">Escalation recipients</label></div>
+                        <input id="escalationRecipients" placeholder="manager@company.com, manager2@company.com">
                     </div>
+                    <p class="settings-hint">Recipients are notified only if the alert has not been completed by its due date.</p>
                 </div>
-                <div class="form-group">
-                    <div class="label-row"><label for="escalationRecipients">Escalation Recipients</label></div>
-                    <input id="escalationRecipients" placeholder="manager@company.com, manager2@company.com">
-                </div>
-                <p class="settings-hint">Separate multiple email addresses with commas. They are notified only if the alert has not been completed by its due date.</p>
             </section>
 
             <div class="modal-actions">
                 <button type="button" class="secondary-button" onclick="closeCreateAlert()">Cancel</button>
                 <button type="submit" class="primary-button" id="alertSubmitButton">Create Alert</button>
             </div>
-
         </form>
-
     </div>
-
 </div>
-
 
 <script src="/js/app.js"></script>
 
