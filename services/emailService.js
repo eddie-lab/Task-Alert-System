@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 const { getTemplate, renderTemplate, stripHtmlToText } = require("./templateService");
 const { getUserById } = require("./userService");
+const { randomUUID } = require("crypto");
+const { updateDocument } = require("./database");
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
@@ -110,8 +112,27 @@ async function verifyEmailConnection() {
    instead of failing, so the scheduler can still be tested.
 ========================================================= */
 
-async function sendMail({ to, subject, body }) {
+async function recordDeliveryProblem({ to, subject, body, alert, category }, error) {
+    const now = new Date().toISOString();
+    await updateDocument("deliveryProblems", problems => [{
+        id: randomUUID(),
+        alertId: alert && alert.id,
+        title: alert && alert.name || subject,
+        dueDate: alert && alert.dueDate || null,
+        recipient: (to || []).join(", "),
+        recipients: to || [],
+        subject,
+        body,
+        category: category || "Alert notification",
+        error: error.message || "Email delivery failed",
+        failedAt: now,
+        attempts: 0
+    }, ...problems]);
+}
 
+async function sendMail({ to, subject, body, alert, category, trackFailure = true }) {
+    let failedRecipients = to || [];
+    try {
     if (!isConfigured) {
 
         // In production a missing SMTP setup must be an error, otherwise
@@ -134,18 +155,32 @@ async function sendMail({ to, subject, body }) {
 
     try {
 
-        await transporter.sendMail({
+        const result = await transporter.sendMail({
             from: `"NorrenAlerts" <${SMTP_USER}>`,
             to: to.join(", "),
             subject,
             html: body,
             text: stripHtmlToText(body)
         });
+        if (result.rejected && result.rejected.length) {
+            failedRecipients = result.rejected.map(item => String(item));
+            throw new Error(`Rejected recipient${failedRecipients.length === 1 ? "" : "s"}: ${failedRecipients.join(", ")}`);
+        }
 
     } catch (error) {
 
         logMailFailure(error, { to, subject });
 
+        throw error;
+    }
+    } catch (error) {
+        if (trackFailure && alert && failedRecipients.length) {
+            try {
+                await recordDeliveryProblem({ to: failedRecipients, subject, body, alert, category }, error);
+            } catch (queueError) {
+                console.error("Unable to save failed email for admin review:", queueError.message);
+            }
+        }
         throw error;
     }
 }
@@ -198,7 +233,9 @@ async function sendReminderEmail(alert) {
     await sendMail({
         to,
         subject: renderTemplate(template.subject, alert),
-        body: renderTemplate(template.body, alert,true)
+        body: renderTemplate(template.body, alert,true),
+        alert,
+        category: "Reminder"
     });
 }
 async function sendDueDateEmail(alert) {
@@ -214,7 +251,9 @@ async function sendDueDateEmail(alert) {
     await sendMail({
         to,
         subject: renderTemplate(template.subject, alert),
-        body: renderTemplate(template.body, alert,true)
+        body: renderTemplate(template.body, alert,true),
+        alert,
+        category: "Due date"
     });
 }
 
@@ -237,7 +276,9 @@ async function sendEscalationEmail(alert) {
     await sendMail({
         to,
         subject: renderTemplate(template.subject, alert),
-        body: renderTemplate(template.body, alert,true)
+        body: renderTemplate(template.body, alert,true),
+        alert,
+        category: "Escalation"
     });
 }
 
@@ -279,7 +320,20 @@ async function sendCompletedEmail(alert, { excludeEmails = [] } = {}) {
     await sendMail({
         to,
         subject: renderTemplate(template.subject, alert),
-        body: renderTemplate(template.body, alert, true)
+        body: renderTemplate(template.body, alert, true),
+        alert,
+        category: "Completion notice"
+    });
+}
+
+async function resendDeliveryProblem(problem) {
+    await sendMail({
+        to: problem.recipients || [problem.recipient].filter(Boolean),
+        subject: problem.subject,
+        body: problem.body,
+        alert: { id: problem.alertId, name: problem.title, dueDate: problem.dueDate },
+        category: problem.category,
+        trackFailure: false
     });
 }
 
@@ -289,5 +343,6 @@ module.exports = {
     sendDueDateEmail,
     sendEscalationEmail,
     sendCompletedEmail,
+    resendDeliveryProblem,
     verifyEmailConnection
 };

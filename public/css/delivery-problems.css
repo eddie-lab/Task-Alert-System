@@ -1,0 +1,40 @@
+.delivery-problems-link { display: flex; align-items: center; gap: 10px; }
+.delivery-problems-count { min-width: 22px; margin-left: auto; padding: 2px 7px; border-radius: 999px; background: #64748b; color: #fff; text-align: center; font-size: 12px; font-weight: 700; }
+.delivery-problems-link.has-delivery-problems .delivery-problems-count { background: #ef4136; }
+.delivery-problem-meta { display: block; margin-top: 5px; color: #64748b; font-size: 12px; }
+.delivery-problem-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.delivery-problem-actions button { cursor: pointer; }
+.delivery-problem-actions button:disabled { opacity: .55; cursor: wait; }
+.delivery-problems-message { min-height: 22px; margin-bottom: 10px; color: #475569; }
+.table-container th { position: sticky; top: 0; }
+@media (max-width: 700px) {
+    .app { display: block; }
+    .sidebar {
+        position: sticky;
+        top: 0;
+        bottom: auto;
+        left: auto;
+        z-index: 1001;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        transform: none;
+        visibility: visible;
+    }
+    .sidebar-wordmark { flex: 1 0 100%; margin: 0; font-size: 12px; }
+    .sidebar nav { display: flex; flex: 1; min-width: 0; }
+    .sidebar .nav-item { margin: 0; padding: 8px; font-size: 12px; }
+    .sidebar-profile { flex-direction: row; align-items: center; gap: 8px; margin: 0; padding: 0; border: 0; }
+    .sidebar-profile-main { display: flex; }
+    .sidebar-profile .user-avatar { width: 30px; height: 30px; font-size: 12px; }
+    .sidebar-profile-details strong { max-width: 74px; font-size: 11px; }
+    .sidebar-profile-details small { font-size: 10px; }
+    .sidebar-profile .sidebar-logout { width: auto; min-height: 38px; margin: 0; padding: 8px; font-size: 12px; }
+    .delivery-problem-actions { margin-top: 8px; }
+}

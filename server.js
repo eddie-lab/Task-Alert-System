@@ -91,6 +91,9 @@ app.use("/api/settings", requireLogin, settingsRouter);
 const adminUsersRouter = require("./routes/adminUsers");
 app.use("/api/admin/users", requireLogin, adminUsersRouter);
 
+const adminDeliveryProblemsRouter = require("./routes/adminDeliveryProblems");
+app.use("/api/admin/delivery-problems", requireLogin, adminDeliveryProblemsRouter);
+
 app.get(["/", "/index.html"], async (req, res, next) => {
     try {
         const userId = req.session && req.session.userId;

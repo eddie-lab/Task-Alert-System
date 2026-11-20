@@ -12,7 +12,8 @@ const dataFiles = {
     alerts: "alerts.json",
     users: "users.json",
     templates: "emailTemplates.json",
-    subsidiaryDomains: "subsidiaryDomains.json"
+    subsidiaryDomains: "subsidiaryDomains.json",
+    deliveryProblems: "deliveryProblems.json"
 };
 
 const DOCUMENT_KEYS = Object.keys(dataFiles);

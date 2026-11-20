@@ -38,6 +38,18 @@ function renderHeader(me) {
 
     document.getElementById("adminNav").style.display = display;
     document.getElementById("allAlertsNav").style.display = display;
+    if (me.role === "Administrator") loadDeliveryProblemCount();
+}
+
+function loadDeliveryProblemCount() {
+    fetch("/api/admin/delivery-problems")
+        .then(response => response.ok ? response.json() : [])
+        .then(problems => {
+            const count = document.getElementById("deliveryProblemsCount");
+            count.textContent = problems.length;
+            document.getElementById("deliveryProblemsNav").classList.toggle("has-delivery-problems", problems.length > 0);
+        })
+        .catch(error => console.error("Unable to load delivery problem count:", error));
 }
 
 

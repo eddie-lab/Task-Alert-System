@@ -247,6 +247,18 @@ function renderCurrentUserHeader() {
             ? "block"
             : "none";
 
+    const deliveryProblemsNav = document.getElementById("deliveryProblemsNav");
+    deliveryProblemsNav.style.display = currentUser.role === "Administrator" ? "flex" : "none";
+    if (currentUser.role === "Administrator") {
+        fetch("/api/admin/delivery-problems")
+            .then(response => response.ok ? response.json() : [])
+            .then(problems => {
+                document.getElementById("deliveryProblemsCount").textContent = problems.length;
+                deliveryProblemsNav.classList.toggle("has-delivery-problems", problems.length > 0);
+            })
+            .catch(error => console.error("Unable to load delivery problem count:", error));
+    }
+
     applySubsidiaryControls();
 }
 

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Problems | NorrenAlerts</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/delivery-problems.css">
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar">
+        <div class="sidebar-wordmark"><h2>NORREN<span>ALERTS</span></h2></div>
+        <nav aria-label="Main navigation">
+            <a class="nav-item" href="/"><span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/></svg></span>Dashboard</a>
+            <a class="nav-item" href="/#alertsSection"><span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="3" cy="5" r="1"/><circle cx="3" cy="10" r="1"/><circle cx="3" cy="15" r="1"/><line x1="7" y1="5" x2="18" y2="5"/><line x1="7" y1="10" x2="18" y2="10"/><line x1="7" y1="15" x2="18" y2="15"/></svg></span>All Alerts</a>
+            <div class="nav-section">Administration</div>
+            <a class="nav-item" href="#"><span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="2" width="12" height="16" rx="1"/><line x1="7" y1="6" x2="7" y2="6.01"/><line x1="13" y1="6" x2="13" y2="6.01"/><line x1="7" y1="10" x2="7" y2="10.01"/><line x1="13" y1="10" x2="13" y2="10.01"/><line x1="8" y1="18" x2="12" y2="18"/></svg></span>Subsidiaries</a>
+            <a class="nav-item" href="/users.html"><span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="6" r="3"/><path d="M2 17c0-3 2-5 5-5s5 2 5 5"/><circle cx="15" cy="7" r="2.2"/><path d="M13 17c0-2.2 1-4 3-4.3"/></svg></span>Users</a>
+            <a class="nav-item" href="/settings.html"><span class="nav-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="3"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="10" y1="16" x2="10" y2="19"/><line x1="1" y1="10" x2="4" y2="10"/><line x1="16" y1="10" x2="19" y2="10"/><line x1="3.5" y1="3.5" x2="5.6" y2="5.6"/><line x1="14.4" y1="14.4" x2="16.5" y2="16.5"/><line x1="3.5" y1="16.5" x2="5.6" y2="14.4"/><line x1="14.4" y1="5.6" x2="16.5" y2="3.5"/></svg></span>System Settings</a>
+            <a class="nav-item active delivery-problems-link" href="/delivery-problems.html">
+                <span class="nav-icon" aria-hidden="true"><svg class="delivery-problems-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v5"/><circle class="delivery-problems-icon-dot" cx="10" cy="14" r=".8"/></svg></span>
+                Delivery problems
+                <span class="delivery-problems-count" id="deliveryProblemsCount">0</span>
+            </a>
+        </nav>
+        <div class="sidebar-profile">
+            <div class="sidebar-profile-main">
+                <div class="user-avatar" id="userAvatar">--</div>
+                <div class="sidebar-profile-details"><strong id="userName">Loading...</strong><small id="userRole">Administrator</small></div>
+            </div>
+            <a class="logout-button sidebar-logout" href="/api/auth/logout" aria-label="Log out" title="Log out">Log out</a>
+        </div>
+    </aside>
+    <main class="main">
+        <header class="topbar"><div><h1>Delivery problems</h1></div></header>
+        <section class="content">
+            <p id="deliveryProblemsMessage" class="delivery-problems-message" role="status" aria-live="polite"></p>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Recipient</th><th>Title</th><th>Due date</th><th>Action</th></tr></thead>
+                    <tbody id="deliveryProblemsTable"><tr><td colspan="4">Loading delivery problems...</td></tr></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="/js/delivery-problems.js" defer></script>
+</body>
+</html>

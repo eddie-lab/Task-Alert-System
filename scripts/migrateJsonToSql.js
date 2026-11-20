@@ -11,7 +11,8 @@ const documents = [
     ["alerts", "alerts.json"],
     ["users", "users.json"],
     ["templates", "emailTemplates.json"],
-    ["subsidiaryDomains", "subsidiaryDomains.json"]
+    ["subsidiaryDomains", "subsidiaryDomains.json"],
+    ["deliveryProblems", "deliveryProblems.json"]
 ];
 
 async function migrate() {
