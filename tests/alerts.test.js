@@ -11,6 +11,7 @@ const {
     calculateReminderDate
 } = require("../services/alertSchedulingService");
 const { renderTemplate } = require("../services/templateService");
+const { canManageAlert, canViewAlert } = require("../services/userService");
 
 function validAlert(overrides = {}) {
     return {
@@ -100,6 +101,38 @@ test("limits regular-user subsidiary filters to created and collaborated alerts"
         getVisibleDashboardAlerts(alerts, user).map(alert => alert.id),
         ["created", "collaborated"]
     );
+});
+
+test("enabled escalation recipients can see and manage their alert", () => {
+    const alert = {
+        id: "escalated",
+        subsidiary: "South",
+        escalationEnabled: true,
+        escalationRecipients: ["escalation@example.com"]
+    };
+    const user = { id: "user-3", role: "User", email: "ESCALATION@example.com" };
+
+    assert.equal(canViewAlert(user, alert), true);
+    assert.equal(canManageAlert(user, alert), true);
+    assert.deepEqual(
+        getVisibleDashboardAlerts([alert], user).map(item => item.id),
+        ["escalated"]
+    );
+});
+
+test("disabled or unrelated escalation recipients cannot access an alert", () => {
+    const alert = {
+        escalationEnabled: false,
+        escalationRecipients: ["escalation@example.com"]
+    };
+    const user = { id: "user-3", role: "User", email: "escalation@example.com" };
+
+    assert.equal(canViewAlert(user, alert), false);
+    assert.equal(canManageAlert(user, alert), false);
+    assert.equal(canViewAlert({ ...user, email: "other@example.com" }, {
+        ...alert,
+        escalationEnabled: true
+    }), false);
 });
 
 test("calculates recurrence and reminder dates", () => {

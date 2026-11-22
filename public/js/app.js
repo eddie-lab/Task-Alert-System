@@ -493,6 +493,17 @@ function alertActionItems(alert) {
     return items;
 }
 
+function canManageAlertInUi(alert) {
+    return !!currentUser && (
+        currentUser.role === "Administrator" ||
+        alert.createdByUserId === currentUser.id ||
+        (alert.ownerUserIds || []).includes(currentUser.id) ||
+        ((alert.escalationEnabled === true || alert.escalationEnabled === "true") &&
+            (alert.escalationRecipients || []).some(email =>
+                String(email).trim().toLowerCase() === String(currentUser.email || "").trim().toLowerCase()))
+    );
+}
+
 function closeAlertActions() {
 
     const existing = document.getElementById("alertActionsMenu");
@@ -632,7 +643,7 @@ function renderAlerts(alerts) {
         row.className = "alert-row" + (isExpanded ? " expanded" : "");
         row.dataset.id = alert.id;
 
-        const actionsHtml = `
+        const actionsHtml = canManageAlertInUi(alert) ? `
                         <button
                             type="button"
                             class="action-button actions-trigger"
@@ -640,7 +651,7 @@ function renderAlerts(alerts) {
                             onclick="openAlertActions('${alert.id}', this)">
                             Actions <span aria-hidden="true">▾</span>
                         </button>
-                    `;
+                    ` : "";
 
         row.innerHTML = `
 
@@ -687,7 +698,7 @@ function renderAlerts(alerts) {
 
             <td data-label="Action">
                 <div class="alert-actions">
-                    ${actionsHtml}
+                    ${actionsHtml || '<span class="read-only-label">View only</span>'}
                 </div>
             </td>
 
@@ -1565,9 +1576,8 @@ function formatDate(date) {
 }
 
 
-loadCurrentUser();
-loadDashboard();
-loadAlerts();
+loadCurrentUser().then(() => Promise.all([loadDashboard(), loadAlerts()]))
+    .catch(error => console.error("Unable to initialize dashboard:", error));
 setInterval(updateDashboardHeader, 60_000);
 
 // ==============================

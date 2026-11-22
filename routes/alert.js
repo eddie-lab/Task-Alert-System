@@ -2,7 +2,7 @@ const express = require("express");
 const { getDocument, saveDocument } = require("../services/database");
 
 const { getCurrentUser } = require("../currentUser");
-const { isAdmin, canManageAlert } = require("../services/userService");
+const { isAdmin, canManageAlert, canViewAlert } = require("../services/userService");
 const { validateReminderRepeat } = require("../services/reminderSchedule");
 const {
     calculateNextDueDate,
@@ -125,12 +125,7 @@ router.get("/", async (req, res) => {
 
         const currentUser = getCurrentUser(req);
         const allAlerts = await getAlerts();
-        const alerts = isAdmin(currentUser)
-            ? allAlerts
-            : allAlerts.filter(
-                alert => alert.createdByUserId === currentUser.id ||
-                (alert.ownerUserIds || []).includes(currentUser.id)
-            );
+        const alerts = allAlerts.filter(alert => canViewAlert(currentUser, alert));
 
         res.json(alerts);
 
@@ -267,10 +262,10 @@ router.get("/:id", async (req, res) => {
             x => x.id === req.params.id
         );
 
-        // Same visibility rule as the list: creator, owners, or an
-        // administrator.
+        // Same read visibility rule as the list, including enabled
+        // escalation recipients.
         // so alert IDs can't be probed to learn which ones exist.
-        if (!alert || !canManageAlert(currentUser, alert)) {
+        if (!alert || !canViewAlert(currentUser, alert)) {
 
             return res.status(404).json({
                 message: "Alert not found"

@@ -1,3 +1,5 @@
+const { canViewAlert } = require("./userService");
+
 function isOverdueAlert(alert, now = new Date()) {
     if (!alert.active || !alert.dueDate ||
         alert.status === "Completed" || alert.status === "Cancelled") {
@@ -9,12 +11,7 @@ function isOverdueAlert(alert, now = new Date()) {
 }
 
 function getVisibleDashboardAlerts(alerts, user, requestedSubsidiary = "") {
-    const visibleAlerts = user && user.role === "Administrator"
-        ? alerts
-        : alerts.filter(alert =>
-            alert.createdByUserId === user.id ||
-            (alert.ownerUserIds || []).includes(user.id)
-        );
+    const visibleAlerts = alerts.filter(alert => canViewAlert(user, alert));
 
     return requestedSubsidiary
         ? visibleAlerts.filter(alert => alert.subsidiary === requestedSubsidiary)

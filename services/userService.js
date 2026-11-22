@@ -132,10 +132,25 @@ function canManageAlert(user, alert) {
         return false;
     }
 
-    return (
-        alert.createdByUserId === user.id ||
-        (alert.ownerUserIds || []).includes(user.id)
-    );
+    return canViewAlert(user, alert);
+}
+
+function canViewAlert(user, alert) {
+    if (isAdmin(user)) {
+        return true;
+    }
+    if (!user || !alert) {
+        return false;
+    }
+
+    const email = String(user.email || "").trim().toLowerCase();
+    const escalationMember = alert.escalationEnabled === true || alert.escalationEnabled === "true";
+    const escalationRecipients = (Array.isArray(alert.escalationRecipients) ? alert.escalationRecipients : [])
+        .map(recipient => String(recipient).trim().toLowerCase());
+
+    return alert.createdByUserId === user.id ||
+        (Array.isArray(alert.ownerUserIds) && alert.ownerUserIds.includes(user.id)) ||
+        (escalationMember && email && escalationRecipients.includes(email));
 }
 
 
@@ -145,6 +160,7 @@ module.exports = {
     getUserByEmail,
     isAdmin,
     canManageAlert,
+    canViewAlert,
     getAssignableUsers,
     emailExists,
     createUser,
