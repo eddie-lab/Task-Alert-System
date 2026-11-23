@@ -59,6 +59,7 @@ document.addEventListener("click", async event => {
 
 fetch("/api/users/me").then(response => response.json()).then(user => {
     if (user.role !== "Administrator") return window.location.replace("/");
+    document.getElementById("adminNav").style.display = "block";
     document.getElementById("userName").textContent = user.name || "Administrator";
     document.getElementById("userRole").textContent = user.role;
     const names = String(user.name || "").trim().split(/\s+/);
