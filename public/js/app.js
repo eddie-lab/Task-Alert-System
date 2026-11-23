@@ -117,6 +117,7 @@ async function loadCurrentUser() {
     renderCurrentUserHeader();
 
     await loadAssignableUsers();
+    await loadAllowedSubsidiaries();
 }
 
 
@@ -148,6 +149,25 @@ async function loadAssignableUsers() {
     });
 
     renderCollaboratorPicker();
+}
+
+async function loadAllowedSubsidiaries() {
+    const response = await fetch("/api/alerts/subsidiaries");
+    if (!response.ok) throw new Error("Unable to load allowed subsidiaries.");
+    const subsidiaries = await response.json();
+
+    const controls = [
+        { id: "alertSubsidiary", placeholder: "Select subsidiary" },
+        { id: "subsidiaryFilter", placeholder: "All Subsidiaries" },
+        { id: "dashboardSubsidiary", placeholder: "All Subsidiaries" }
+    ];
+    controls.forEach(({ id, placeholder }) => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        select.replaceChildren(new Option(placeholder, ""));
+        subsidiaries.forEach(subsidiary => select.add(new Option(subsidiary, subsidiary)));
+    });
+    applyCurrentUserSubsidiary();
 }
 
 function renderCollaboratorPicker() {
@@ -340,6 +360,8 @@ function applyCurrentUserSubsidiary() {
         return;
     }
 
+    const subsidiary = String(currentUser.subsidiary || "").trim();
+
     if (currentUser.role === "Administrator") {
 
         subsidiarySelect.disabled = false;
@@ -347,7 +369,7 @@ function applyCurrentUserSubsidiary() {
     }
 
     // Regular users always create alerts under their own subsidiary.
-    subsidiarySelect.value = currentUser.subsidiary;
+    subsidiarySelect.value = subsidiary;
     subsidiarySelect.disabled = true;
 }
 

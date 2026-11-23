@@ -11,6 +11,7 @@ const {
 } = require("../services/alertSchedulingService");
 const { validateAlertInput } = require("../services/alertValidation");
 const { sendCompletedEmail } = require("../services/emailService");
+const { getDomainMap } = require("../services/subsidiaryDomainService");
 const multer = require("multer");
 const {
     buildTemplateBuffer,
@@ -136,6 +137,22 @@ router.get("/", async (req, res) => {
         res.status(500).json({
             message: "Unable to retrieve alerts"
         });
+    }
+});
+
+router.get("/subsidiaries", async (_req, res) => {
+    try {
+        const domainMap = await getDomainMap();
+        const subsidiaries = [...new Set(Object.values(domainMap).flatMap(entry => {
+            if (typeof entry === "string") return [entry];
+            return entry && entry.ambiguous && Array.isArray(entry.options)
+                ? entry.options
+                : [];
+        }))].sort((a, b) => a.localeCompare(b));
+        res.json(subsidiaries);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Unable to retrieve allowed subsidiaries." });
     }
 });
 
