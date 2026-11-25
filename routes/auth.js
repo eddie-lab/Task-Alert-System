@@ -124,10 +124,7 @@ router.get("/callback", async (req, res) => {
                 req.session.pendingSignup = { name, email };
 
                 return res.redirect(
-                    "/signup.html?needsSubsidiary=1&question=" +
-                    encodeURIComponent(resolution.question) +
-                    "&options=" +
-                    encodeURIComponent(JSON.stringify(resolution.options))
+                    "/signup.html?needsSubsidiary=1"
                 );
             }
 
@@ -143,6 +140,26 @@ router.get("/callback", async (req, res) => {
         console.error(error);
 
         res.redirect("/signup.html?error=" + encodeURIComponent("Sign-in failed. Please try again."));
+    }
+});
+
+router.get("/signup-options", async (req, res) => {
+    try {
+        const pendingSignup = req.session && req.session.pendingSignup;
+        if (!pendingSignup || !pendingSignup.email) {
+            return res.status(400).json({ message: "No signup is waiting for subsidiary selection." });
+        }
+
+        const resolution = await resolveSubsidiary(pendingSignup.email);
+        if (!resolution.allowed || !resolution.ambiguous) {
+            return res.status(400).json({ message: "No subsidiary choices are configured for this signup." });
+        }
+
+        res.set("Cache-Control", "no-store");
+        res.json({ question: resolution.question, options: resolution.options });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Unable to load subsidiary choices." });
     }
 });
 
